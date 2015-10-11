@@ -1,0 +1,14 @@
+language: ruby
+rvm:
+  - 2.2
+  - 2.1
+  - 2.0.0
+  - ruby-head
+  - 1.9.3
+
+matrix:
+  allow_failures:
+    - rvm: ruby-head
+
+gemfile:
+  - Gemfile

@@ -4,6 +4,7 @@ gemspec
 
 group :development, :test do
   gem 'byebug' unless RUBY_VERSION < '2.0.0'
+  gem 'rake'
   gem 'redcarpet'
   gem 'rubocop'
   gem 'guard'
