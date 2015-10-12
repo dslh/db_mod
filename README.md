@@ -9,7 +9,10 @@ database access functions into modular libraries that can be included
 in your projects to give them selective access to facets of your data.
 
 For the moment `db_mod` only supports PostgreSQL databases via the
-`pg` gem.
+`pg` gem. This gem is still in the early stages of development and no
+guarantees will be made about backwards compatibility until v0.1.0.
+
+Issues, pull requests, comments and feedback all welcomed.
 
 ## Usage
 
@@ -56,7 +59,7 @@ get_stuff.each do |thing|
 end
 ```
 
-#### `create`: Module instances
+#### Module instances: `DbMod.create`
 
 Each module also comes with its own `create` function,
 which instantiates an object exposing all of the module's functions.
@@ -72,7 +75,7 @@ db = MyFunctions.create PGconn.connect # ...
 db.get_stuff
 ```
 
-#### `@conn`: The connection object
+#### The connection object: `@conn`
 
 The connection created by `db_connect` or `create` will be stored
 in the instance variable `@conn`. This instance variable may be
@@ -107,7 +110,9 @@ db = DbAccess.create db: 'mydb'
 db.things_n_stuff
 ```
 
-### `def_prepared`: Declaring SQL statements
+### Declaring SQL statements
+
+#### Prepared statement methods: `DbMod.def_prepared`
 
 Modules which include `DbMod` can declare prepared statements
 using the module function `def_prepared`. These statements will
@@ -171,3 +176,10 @@ modules on the given connection.
 db = Db::ComplicatedStuff.create my_conn
 Db::ComplicatedStuff.prepare_all_statements my_conn
 ```
+
+#### Saved statement methods: `DbMod.def_statement`
+
+`def_statement` works in just the same way as `def_prepared`, except that
+the SQL queries are saved in memory rather than being sent to the database
+at connection time. This is useful for queries that will only be run once
+or twice during a program's execution.

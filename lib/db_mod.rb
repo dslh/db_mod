@@ -17,7 +17,7 @@ module DbMod
   # class-level functions specific to the module.
   def self.included(mod)
     DbMod::Create.setup(mod)
-    DbMod::Statements::Prepared.setup(mod)
+    DbMod::Statements.setup(mod)
   end
 
   protected

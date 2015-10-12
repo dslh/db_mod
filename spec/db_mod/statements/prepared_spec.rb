@@ -108,6 +108,29 @@ describe DbMod::Statements::Prepared do
     end.not_to raise_exception
   end
 
+  it 'handles complicated parameter usage' do
+    mod = Module.new do
+      include DbMod
+
+      def_prepared(
+        :params_test,
+        'INSERT INTO foo (a,b,c,d) VALUES ($a-1,$b::integer,$c*2,$b)'
+      )
+    end
+
+    expect(@conn).to receive(:prepare).with(
+      'params_test',
+      'INSERT INTO foo (a,b,c,d) VALUES ($1-1,$2::integer,$3*2,$2)'
+    )
+    db = mod.create(db: 'testdb')
+
+    expect(@conn).to receive(:exec_prepared).with(
+      'params_test',
+      [1, 2, 3]
+    )
+    db.params_test(a: 1, b: 2, c: 3)
+  end
+
   it 'does not allow invalid parameters' do
     %w(CAPITALS numb3rs_and_l3tt3rs).each do |param|
       expect do

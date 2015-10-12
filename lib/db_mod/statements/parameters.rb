@@ -2,36 +2,41 @@ module DbMod
   module Statements
     # Parsing and validation of query parameters
     # for prepared SQL statements
-    module Params
+    module Parameters
+      # Called when a {DbMod} dynamically defined method is called.
       # Assert that the named arguments given for the prepared statement
-      # with the given name satisfy expectations.
+      # with the given name satisfy expectations. Returns a parameter array
+      # as per {Parameters.parameter_array}.
       #
       # @param expected [Array<Symbol>] the parameters expected to be present
-      # @param args [Hash] given parameters
+      # @param args [Array<Hash<Symbol>>] arguments given to the method being
+      #   executed. The method should only be called with an options hash that
+      #   contains exactly the parameter names given when the method was
+      #   defined.
       # @return [Array] values to be passed to the prepared statement
       def self.valid_named_args!(expected, args)
-        unless args.is_a? Hash
-          fail ArgumentError, "invalid argument: #{args.inspect}"
-        end
+        wrapped_hash! args
 
+        args = args.first
         if args.size != expected.size
           fail ArgumentError, "#{args.size} args given, #{expected.size} needed"
         end
 
-        expected.map do |arg|
-          args[arg] || fail(ArgumentError, "missing arg #{arg}")
+        parameter_array(expected, args)
+      end
+
+      # Called when a {DbMod} dynamically defined method is called.
+      # Assert that the correct number of arguments has been provided.
+      #
+      # @param count [Fixnum] arity of the method being called.
+      # @param args [Array] list of arguments given.
+      def self.valid_fixed_args!(count, args)
+        unless args.size == count
+          fail ArgumentError, "#{args.size} args given, #{count} expected"
         end
       end
 
-      # Regex matching a numbered parameter
-      NUMBERED_PARAM = /\$\d+/
-
-      # Regex matching a named parameter
-      NAMED_PARAM = /\$[a-z]+(?:_[a-z]+)*/
-
-      # For validation, named or numbered parameter
-      NAMED_OR_NUMBERED = /^\$(?:\d+|[a-z]+(?:_[a-z]+)*)$/
-
+      # Called when a {DbMod} dynamically defined method is declared.
       # Parses parameters, named or numbered, from an SQL
       # statement. See the {Prepared} module documentation
       # for more. This method may modify the sql statement
@@ -47,15 +52,56 @@ module DbMod
       # @return [Fixnum,Array<Symbol>] description of
       #   prepared statement's parameters
       def self.parse_params!(sql)
-        Params.valid_sql_params! sql
+        Parameters.valid_sql_params! sql
         numbered = sql.scan NUMBERED_PARAM
         named = sql.scan NAMED_PARAM
 
         if numbered.any?
           fail ArgumentError, 'mixed named and numbered params' if named.any?
-          Params.parse_numbered_params! numbered
+          Parameters.parse_numbered_params! numbered
         else
-          Params.parse_named_params! sql, named
+          Parameters.parse_named_params! sql, named
+        end
+      end
+
+      # Regex matching a numbered parameter
+      NUMBERED_PARAM = /\$\d+/
+
+      # Regex matching a named parameter
+      NAMED_PARAM = /\$[a-z]+(?:_[a-z]+)*/
+
+      # For validation, named or numbered parameter
+      NAMED_OR_NUMBERED = /^\$(?:\d+|[a-z]+(?:_[a-z]+)*)$/
+
+      private
+
+      # Assert that the given parameter list is an array
+      # containing a single hash of named parameter values.
+      #
+      # Raises {ArgumentError} otherwise.
+      #
+      # @param args [Array<Hash<Symbol>>] method arguments being validated
+      def self.wrapped_hash!(args)
+        unless args.size == 1
+          fail ArgumentError, "unexpected arguments: #{args.inspect}"
+        end
+
+        unless args.first.is_a? Hash
+          fail ArgumentError, "invalid argument: #{args.first.inspect}"
+        end
+      end
+
+      # Convert the given named parameter hash into
+      # an array containing the parameter values in
+      # the order required to be supplied to the
+      # SQL statement being executed.
+      #
+      # @param expected [Array<Symbol>] the parameters expected to be present
+      # @param args [Hash] given parameters
+      # @return [Array] values to be passed to the prepared statement
+      def self.parameter_array(expected, args)
+        expected.map do |arg|
+          args[arg] || fail(ArgumentError, "missing arg #{arg}")
         end
       end
 
@@ -63,7 +109,7 @@ module DbMod
       # in the expected format. They must either be
       # lower_case_a_to_z or digits only.
       def self.valid_sql_params!(sql)
-        sql.scan(/\$\S+/) do |param|
+        sql.scan(/\$[A-Za-z0-9_]+/) do |param|
           unless param =~ NAMED_OR_NUMBERED
             fail ArgumentError, "Invalid parameter #{param}"
           end

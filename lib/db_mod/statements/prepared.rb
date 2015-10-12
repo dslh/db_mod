@@ -1,4 +1,4 @@
-require_relative 'params'
+require_relative 'parameters'
 
 module DbMod
   module Statements
@@ -48,8 +48,6 @@ module DbMod
     #  my_prepared(1,2)
     #  my_named_prepared(a: 1, b: 2)
     module Prepared
-      include Params
-
       # Defines a module-specific +def_prepared+ function
       # for a module that has just had {DbMod} included.
       #
@@ -62,24 +60,6 @@ module DbMod
       end
 
       private
-
-      # Merge the prepared statements from a module
-      # into a given hash. Fails if there are any
-      # duplicates.
-      #
-      # @param statements [Hash] named list of prepared statements
-      # @param klass [Class,Module] ancestor (hopefully a DbMod module)
-      #   to collect prepared statements from
-      def self.merge_statements(statements, klass)
-        return unless klass.respond_to? :prepared_statements
-        return if klass.prepared_statements.nil?
-
-        klass.prepared_statements.each do |name, sql|
-          fail DbMod::Exceptions::DuplicateStatementName if statements.key? name
-
-          statements[name] = sql
-        end
-      end
 
       # Add a +def_prepared+ method definition to a module.
       # This method allows modules to declare named SQL statements
@@ -94,7 +74,7 @@ module DbMod
             sql = sql.dup
             name = name.to_sym
 
-            params = Params.parse_params! sql
+            params = Parameters.parse_params! sql
             prepared_statements[name] = sql
             Prepared.define_prepared_method(mod, name, params)
           end
@@ -117,18 +97,34 @@ module DbMod
         end
       end
 
-      # Define a method in the module with the given name
+      # Merge the prepared statements from a module
+      # into a given hash. Fails if there are any
+      # duplicates.
+      #
+      # @param statements [Hash] named list of prepared statements
+      # @param klass [Class,Module] ancestor (hopefully a DbMod module)
+      #   to collect prepared statements from
+      def self.merge_statements(statements, klass)
+        return unless klass.respond_to? :prepared_statements
+        return if klass.prepared_statements.nil?
+
+        klass.prepared_statements.each do |name, sql|
+          fail DbMod::Exceptions::DuplicateStatementName if statements.key? name
+
+          statements[name] = sql
+        end
+      end
+
+      # Define a method in the given module with the given name
       # and parameters, that will call the prepared statement
       # with the same name.
       #
-      # @param mod [Module] module declaring the metho
+      # @param mod [Module] module declaring the method
       # @param name [Symbol] method name
       # @param params [Fixnum,Array<Symbol>]
       #   expected parameter count, or a list of argument names.
       #   An empty array produces a no-argument method.
       def self.define_prepared_method(mod, name, params)
-        mod.expected_prepared_statement_parameters[name] = params
-
         if params.is_a?(Array)
           if params.empty?
             define_no_args_prepared_method(mod, name)
@@ -165,10 +161,7 @@ module DbMod
       # @param params [Array<Symbol>] list of parameter names
       def self.define_named_args_prepared_method(mod, name, params)
         method = lambda do |*args|
-          unless args.size == 1
-            fail ArgumentError, "unexpected arguments: #{args.inspect}"
-          end
-          args = Params.valid_named_args! params, args.first
+          args = Parameters.valid_named_args! params, args
           conn.exec_prepared(name.to_s, args)
         end
 
@@ -188,9 +181,7 @@ module DbMod
       #   requires
       def self.define_fixed_args_prepared_method(mod, name, count)
         method = lambda do |*args|
-          unless args.size == count
-            fail ArgumentError, "#{args.size} args given, #{count} expected"
-          end
+          Parameters.valid_fixed_args!(count, args)
 
           conn.exec_prepared(name.to_s, args)
         end
@@ -207,10 +198,6 @@ module DbMod
         mod.class.instance_eval do
           define_method(:prepared_statements) do
             @prepared_statements ||= {}
-          end
-
-          define_method(:expected_prepared_statement_parameters) do
-            @expected_prepared_statement_parameters ||= {}
           end
         end
       end
