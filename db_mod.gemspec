@@ -5,14 +5,16 @@ Gem::Specification.new do |s|
   s.name        = 'db_mod'
   s.version     = DbMod::VERSION
   s.platform    = Gem::Platform::RUBY
-  s.authors     = ['Doug Hammond']
+  s.author      = 'Doug Hammond'
   s.email       = ['d.lakehammond@gmail.com']
-  s.summary     = 'Ruby framework for building modular db-access libs.'
-  s.description = 'Organize your database-intensive batch scripts with db_mod.'
+  s.homepage    = 'https://github.com/dslh/db_mod'
+  s.summary     = 'Declarative, modular database library framework.'
+  s.description = 'Framework for building modular database libraries.'
   s.license     = 'MIT'
 
+  s.required_ruby_version = '>= 1.9.3'
+
   s.add_runtime_dependency 'pg'
-  s.add_runtime_dependency 'docile'
 
   s.add_development_dependency 'simplecov'
   s.add_development_dependency 'rspec'

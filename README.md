@@ -8,6 +8,9 @@ The `db_mod` gem is a simple framework that helps you organise your
 database access functions into modular libraries that can be included
 in your projects to give them selective access to facets of your data.
 
+For the moment `db_mod` only supports PostgreSQL databases via the
+`pg` gem.
+
 ## Usage
 
 ### The database connection
