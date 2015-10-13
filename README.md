@@ -2,6 +2,13 @@
 
 Database enabled modules for ruby.
 
+[![GitHub version](https://badge.fury.io/gh/dslh%2Fdb_mod.svg)](https://github.com/dslh/db_mod)
+[![Gem Version](https://badge.fury.io/rb/db_mod.svg)](https://rubygems.org/gems/db_mod)
+[![Travis CI](https://img.shields.io/travis/dslh/db_mod/master.svg)](https://travis-ci.org/dslh/db_mod)
+![Gem downloads](https://img.shields.io/gem/dt/db_mod.svg)
+
+[Rubydoc.info documentation](http://www.rubydoc.info/gems/db_mod)
+
 ## Description
 
 The `db_mod` gem is a simple framework that helps you organise your

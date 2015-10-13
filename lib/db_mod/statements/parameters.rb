@@ -78,7 +78,7 @@ module DbMod
       # Assert that the given parameter list is an array
       # containing a single hash of named parameter values.
       #
-      # Raises {ArgumentError} otherwise.
+      # Raises +ArgumentError+ otherwise.
       #
       # @param args [Array<Hash<Symbol>>] method arguments being validated
       def self.wrapped_hash!(args)
