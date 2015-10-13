@@ -83,9 +83,7 @@ module DbMod
       # @param name [Symbol] name of the method to be defined
       # @param sql [String] parameterless SQL statement to execute
       def self.define_no_args_statement_method(mod, name, sql)
-        mod.instance_eval do
-          define_method name, ->() { query(sql) }
-        end
+        Statements.configurable_method mod, name, ->() { query(sql) }
       end
 
       # Define a method with the given name, that accepts the
@@ -101,7 +99,7 @@ module DbMod
           conn.exec_params(sql, args)
         end
 
-        mod.instance_eval { define_method(name, method) }
+        Statements.configurable_method mod, name, method
       end
 
       # Define a method with the given name that accepts a fixed number
@@ -119,7 +117,7 @@ module DbMod
           conn.exec_params(sql, args)
         end
 
-        mod.instance_eval { define_method(name, method) }
+        Statements.configurable_method mod, name, method
       end
     end
   end

@@ -145,9 +145,8 @@ module DbMod
       # @param name [Symbol] name of the method to be defined
       #   and the prepared query to be called.
       def self.define_no_args_prepared_method(mod, name)
-        mod.instance_eval do
-          define_method name, ->() { conn.exec_prepared(name.to_s) }
-        end
+        method = ->() { conn.exec_prepared(name.to_s) }
+        Statements.configurable_method mod, name, method
       end
 
       # Define a method with the given name that accepts the
@@ -165,7 +164,7 @@ module DbMod
           conn.exec_prepared(name.to_s, args)
         end
 
-        mod.instance_eval { define_method(name, method) }
+        Statements.configurable_method mod, name, method
       end
 
       # Define a method with the given name that accepts a fixed
@@ -186,7 +185,7 @@ module DbMod
           conn.exec_prepared(name.to_s, args)
         end
 
-        mod.instance_eval { define_method(name, method) }
+        Statements.configurable_method(mod, name, method)
       end
 
       # Adds +prepared_statements+ to a module. This list of named

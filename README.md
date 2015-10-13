@@ -183,3 +183,23 @@ Db::ComplicatedStuff.prepare_all_statements my_conn
 the SQL queries are saved in memory rather than being sent to the database
 at connection time. This is useful for queries that will only be run once
 or twice during a program's execution.
+
+#### Configuring defined statements
+
+`db_mod` contains a simple framework for extending these statement methods
+and prepared methods with additional argument and result processing. For
+now only `.as(:csv)` is supported, which will cause the method to format
+the SQL result set as a CSV string.
+
+```ruby
+module CsvReports
+  include DbMod
+
+  def_prepared(:foo, 'SELECT a, b FROM foo WHERE bar_id = $id').as(:csv)
+end
+
+include CsvReports
+db_connect db: 'testdb'
+
+foo(id: 1) # => "a,b\n1,2\n3,4\n..."
+```
