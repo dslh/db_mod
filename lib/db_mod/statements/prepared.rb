@@ -10,22 +10,17 @@ module DbMod
     # For statements that are not prepared ahead of execution,
     # see +def_statement+ in {DbMod::Statements::Statement}.
     #
-    # def_prepared
-    # ------------
-    #
     # +def_prepared+ accepts two parameters:
-    # * `name` [Symbol]: The name that will be given to
+    # * *name* [Symbol]: The name that will be given to
     #   the prepared statement. A method will also be defined
     #   on the module with the same name which will call the
     #   statement and return the result.
-    # * `sql` [String]: The SQL statement to be prepared.
+    # * *sql* [String]: The SQL statement to be prepared.
     #   Parameters may be declared using the $ symbol followed
-    #   by a number ($1, $2, $3) or a name ($one, $two, $under_scores).
+    #   by a number +($1, $2, $3)+ or a name +($one, $two, $a_b)+.
     #   The two styles may not be mixed in the same statement.
     #   The defined function can then be passed parameters
     #   that will be used when the statement is executed.
-    #
-    # ### example
     #
     #  module MyModule
     #    include DbMod

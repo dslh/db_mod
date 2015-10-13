@@ -10,20 +10,38 @@ module DbMod
     # To declare prepared statements, see +def_prepared+
     # in {DbMod::Statements::Prepared}.
     #
-    # def_statement
-    # -------------
-    #
     # +def_statement+ accepts two parameters:
-    # * `name` [Symbol]: The name that will be given to the
+    # * *name* [Symbol]: The name that will be given to the
     #   method that can be used to execute the SQL statement
     #   and return the result.
-    # * `sql` [String]: The SQL statement that shoul be executed
+    # * *sql* [String]: The SQL statement that shoul be executed
     #   when the method is called. Parameters may be declared
-    #   using the $ symbol followed by a number ($1, $2, $3) or
-    #   a name ($one, $two, $under_scores). The two styles may
+    #   using the $ symbol followed by a number +($1, $2, $3)+ or
+    #   a name +($one, $two, $under_scores)+. The two styles may
     #   not be mixed in the same statement. The defined function
     #   can then be passed parameters that will be used to fill
     #   in the statement before execution.
+    #
+    #  module MyModule
+    #    include DbMod
+    #
+    #    def_prepared :my_prepared, <<-SQL
+    #      SELECT *
+    #        FROM stuff
+    #       WHERE a = $1 AND b = $2
+    #    SQL
+    #
+    #    def_prepared :my_named_prepared, <<-SQL
+    #      SELECT *
+    #        FROM stuff
+    #       WHERE a = $a AND b = $b
+    #    SQL
+    #  end
+    #
+    #  include MyModule
+    #  db_connect db: 'mydb'
+    #  my_prepared(1,2)
+    #  my_named_prepared(a: 1, b: 2)
     module Statement
       # Defines a module-specific +def_statement+ function
       # for a module that has just had {DbMod} included.
