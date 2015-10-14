@@ -1,7 +1,12 @@
+0.0.4 (2015-10-14)
+==================
+
+* Adds `.as(:json)` to go with `.as(:csv)` - [@dslh](https://github.com/dslh).
+
 0.0.3 (2015-10-13)
 ==================
 
-* Configurable method framework. Adds `def_prepared/statement.as(:csv)` - [@dslh](https://github.com/dslh)
+* Configurable method framework. Adds `def_prepared/statement.as(:csv)` - [@dslh](https://github.com/dslh).
 
 0.0.2 (2015-10-12)
 ==================

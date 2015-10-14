@@ -195,18 +195,20 @@ or twice during a program's execution.
 
 `db_mod` contains a simple framework for extending these statement methods
 and prepared methods with additional argument and result processing. For
-now only `.as(:csv)` is supported, which will cause the method to format
-the SQL result set as a CSV string.
+now only `.as(:csv)` and `.as(:json)` are supported, which will cause the
+method to format the SQL result set as a CSV or JSON string respectively.
 
 ```ruby
 module CsvReports
   include DbMod
 
   def_prepared(:foo, 'SELECT a, b FROM foo WHERE bar_id = $id').as(:csv)
+  def_statement(:bar, 'SElECT c, d FROM bar WHERE foo_id = $1').as(:json)
 end
 
 include CsvReports
 db_connect db: 'testdb'
 
 foo(id: 1) # => "a,b\n1,2\n3,4\n..."
+bar(2) # => '[{"c":"5","d":"6"},...]'
 ```

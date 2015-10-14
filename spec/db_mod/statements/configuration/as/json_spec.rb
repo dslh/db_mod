@@ -1,13 +1,13 @@
 require 'spec_helper'
-require 'csv'
+require 'json'
 
-describe DbMod::Statements::Configuration::As::Csv do
+describe DbMod::Statements::Configuration::As::Json do
   subject do
     Module.new do
       include DbMod
 
-      def_statement(:statement, 'SELECT a, b FROM foo').as(:csv)
-      def_prepared(:prepared, 'SELECT a, b FROM bar').as(:csv)
+      def_statement(:statement, 'SELECT a, b FROM foo').as(:json)
+      def_prepared(:prepared, 'SELECT a, b FROM bar').as(:json)
     end.create(db: 'testdb')
   end
 
@@ -22,15 +22,16 @@ describe DbMod::Statements::Configuration::As::Csv do
     prepared: :exec_prepared
   }.each do |method_type, exec_type|
     context "#{method_type} methods" do
-      it 'coerces results to csv' do
+      it 'coerces results to json' do
         expect(@conn).to receive(exec_type).and_return([
-          { 'a' => '1', 'b' => '2' },
-          { 'a' => '3', 'b' => '4' },
-          { 'a' => nil, 'b' => '5' }
+          { 'a' => '1', 'b' => 'foo' },
+          { 'a' => '2', 'b' => nil }
         ])
 
-        csv = subject.send(method_type)
-        expect(csv).to eq("a,b\n1,2\n3,4\n,5\n")
+        json = subject.send(method_type)
+        expect(json).to eq(
+          '[{"a":"1","b":"foo"},{"a":"2","b":null}]'
+        )
       end
     end
   end

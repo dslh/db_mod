@@ -1,4 +1,5 @@
 require_relative 'as/csv'
+require_relative 'as/json'
 
 module DbMod
   module Statements
@@ -21,7 +22,8 @@ module DbMod
         # Only keys defined here are allowed as arguments
         # to {DbMod::Statements::Configuration::ConfigurableMethod#as}.
         COERCERS = {
-          csv: As::Csv
+          csv: As::Csv,
+          json: As::Json
         }
 
         # Extend a method so that the SQL result set it
