@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'csv'
 
-describe DbMod::As::Csv do
+describe DbMod::Statements::Configuration::As::Csv do
   subject do
     Module.new do
       include DbMod

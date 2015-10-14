@@ -141,7 +141,7 @@ module DbMod
       #   and the prepared query to be called.
       def self.define_no_args_prepared_method(mod, name)
         method = ->() { conn.exec_prepared(name.to_s) }
-        Statements.configurable_method mod, name, method
+        Configuration.def_configurable mod, name, method
       end
 
       # Define a method with the given name that accepts the
@@ -159,7 +159,7 @@ module DbMod
           conn.exec_prepared(name.to_s, args)
         end
 
-        Statements.configurable_method mod, name, method
+        Configuration.def_configurable mod, name, method
       end
 
       # Define a method with the given name that accepts a fixed
@@ -180,7 +180,7 @@ module DbMod
           conn.exec_prepared(name.to_s, args)
         end
 
-        Statements.configurable_method(mod, name, method)
+        Configuration.def_configurable(mod, name, method)
       end
 
       # Adds +prepared_statements+ to a module. This list of named
