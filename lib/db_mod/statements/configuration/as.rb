@@ -8,7 +8,7 @@ module DbMod
       # module instance methods returning an SQL result set
       # to be extended with additional result coercion and
       # formatting. The normal way to access this functionality
-      # is via {DbMod::Statements::Configuration::ConfigurableMethod#as},
+      # is via {ConfigurableMethod#as},
       # which is available when defining a statement method
       # or prepared method:
       #
@@ -39,7 +39,7 @@ module DbMod
             fail ArgumentError, "#{type} not in #{COERCERS.keys.join ', '}"
           end
 
-          Configuration.extend_method(mod, name, COERCERS[type])
+          Configuration.process_method_results(mod, name, COERCERS[type])
         end
       end
     end

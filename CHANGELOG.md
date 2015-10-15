@@ -1,6 +1,7 @@
-0.0.4 (2015-10-14)
+0.0.4 (2015-10-15)
 ==================
 
+* Adds `def_prepared/statement.single(:value/:row/:column)` - [@dslh](https://github.com/dslh).
 * Adds `.as(:json)` to go with `.as(:csv)` - [@dslh](https://github.com/dslh).
 
 0.0.3 (2015-10-13)

@@ -22,25 +22,22 @@ module DbMod
       end
 
       # Used by {ConfigurableMethod} (and associated code) to wrap a defined
-      # statement method or prepared method with additional parameter or result
-      # processing. A wrapper method definition should be provided, which will
-      # be called in place of the original method. It will be called with the
-      # original method proc as a first argument followed by the original
-      # method arguments (before +DbMod+ has made any attempt to validate
-      # them!). It is expected to yield to the original proc at some point,
-      # although it is allowed to do whatever it wants with the results
-      # before returning them.
+      # statement method or prepared method with additional result processing.
+      # A method should be provided, which accepts an SQL result set and
+      # returns some transformation of the results. The original method
+      # declaration will be replaced, so that the original method definition
+      # is called and the results are passed through this given method.
       #
       # @param mod [Module] the module where the method has been defined
       # @param name [Symbol] the method name
-      # @param wrapper [Proc] a function which will be used to wrap the
-      #   original method definition
-      def self.extend_method(mod, name, wrapper)
+      # @param wrapper [#call]
+      #   a function that processes the SQL results in some way
+      def self.process_method_results(mod, name, wrapper)
         mod.instance_eval do
           wrapped = instance_method(name)
 
           define_method(name, lambda do |*args|
-            wrapper.call wrapped.bind(self), *args
+            wrapper.call wrapped.bind(self).call(*args)
           end)
         end
       end

@@ -15,18 +15,14 @@ module DbMod
         #  end
         module Csv
           # Enables this module to be passed to
-          # {DbMod::Statements::Configuration.extend_method} as the +wrapper+
-          # function, in which case it will retrieve the results
+          # {DbMod::Statements::Configuration.process_method_results} as the
+          # +wrapper+ function, in which case it will retrieve the results
           # and format them as a CSV document using the column names
           # from the result set.
           #
-          # @param wrapped_method [Method] the method that has been wrapped
-          # @param args [*] arguments
-          #   expected to be passed to the wrapped method
+          # @param results [Object] SQL result set
           # @return [String] a CSV formatted document
-          def self.call(wrapped_method, *args)
-            results = wrapped_method.call(*args)
-
+          def self.call(results)
             headers = nil
             CSV.generate do |csv|
               results.each do |row|

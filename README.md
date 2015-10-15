@@ -194,21 +194,60 @@ or twice during a program's execution.
 #### Configuring defined statements
 
 `db_mod` contains a simple framework for extending these statement methods
-and prepared methods with additional argument and result processing. For
-now only `.as(:csv)` and `.as(:json)` are supported, which will cause the
-method to format the SQL result set as a CSV or JSON string respectively.
+and prepared methods with additional result processing. A simple
+chained-method syntax is used
+
+##### JSON and CSV formatting
+
+Statement and prepared methods can be configured on declaration by using
+`.as(:csv)` and `.as(:json)`, which will convert the result set to a string
+formatted as either a CSV document or an array of JSON objects, respectively.
 
 ```ruby
-module CsvReports
+module Reports
   include DbMod
 
   def_prepared(:foo, 'SELECT a, b FROM foo WHERE bar_id = $id').as(:csv)
   def_statement(:bar, 'SElECT c, d FROM bar WHERE foo_id = $1').as(:json)
 end
 
-include CsvReports
+include Reports
 db_connect db: 'testdb'
 
 foo(id: 1) # => "a,b\n1,2\n3,4\n..."
 bar(2) # => '[{"c":"5","d":"6"},...]'
+```
+
+##### Queries returning one row, column or value
+
+To save a lot of repetetive unboxing of query results, methods that return
+only one row, or rows with only one column, or only one row with a single
+value, can be marked as such using the `.single` extension.
+
+```ruby
+module Getters
+  include DbMod
+
+  def_prepared(:user, 'SELECT * FROM user WHERE id = $1').single(:row)
+  def_prepared(:name, 'SELECT name FROM user WHERE id = $1').single(:value)
+  def_statement(:ids, 'SELECT id FROM user').single(:column)
+end
+
+# ...
+
+user(1) # => { "id" => "1", "name" => "username" }
+name(1) # => "username"
+ids # => ['1', '2', '3', ...]
+```
+
+When no results are returned, `:column` returns `[]` while  `:row` and
+`:value` will return `nil`. To raise an exception instead of returning
+`nil`, use `:row!` and `:value!` instead.
+
+```ruby
+def_statement(:a, 'SELECT 1 WHERE true = false').single(:value)
+def_statement(:b, 'SELECT 1 WHERE true = false').single(:value!)
+
+a # => nil
+b # => fail
 ```

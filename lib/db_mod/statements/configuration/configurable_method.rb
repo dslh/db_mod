@@ -1,4 +1,5 @@
 require_relative 'as'
+require_relative 'single'
 
 module DbMod
   module Statements
@@ -24,23 +25,52 @@ module DbMod
         def initialize(mod, name)
           @mod = mod
           @name = name
+          @already_called = {}
         end
 
         # Extend the method by converting results into a given
         # format, using one of the coercion methods defined
-        # under {DbMod::As}.
+        # under {DbMod::Statements::Configuration::As}.
         #
-        # @param type [Symbol] for now, only :csv is accepted
+        # @param type [:csv,:json] output format for the method
         # @return [self]
         def as(type)
-          if @as_called
-            fail DbMod::Exceptions::BadMethodConfiguration, 'as already called'
-          end
-          @as_called = true
+          called! :as
 
           Configuration::As.extend_method(@mod, @name, type)
 
           self
+        end
+
+        # Extend the method by extracting a singular part of
+        # the result set, for queries expected to only return
+        # one row, one column, or one row with a single value.
+        # See {DbMod::Statements::Configuration::Single} for
+        # more details.
+        #
+        # @param type [Symbol] see {SINGLE_TYPES}
+        # @return [self]
+        def single(type)
+          called! :single
+
+          Configuration::Single.extend_method(@mod, @name, type)
+
+          self
+        end
+
+        private
+
+        # Guard method which asserts that a configuration method
+        # may not be called more than once, or else raises
+        # {DbMod::Exceptions::BadMethodConfiguration}.
+        #
+        # @param method [Symbol] method being called
+        def called!(method)
+          if @already_called[method]
+            fail Exceptions::BadMethodConfiguration, "#{method} already called"
+          end
+
+          @already_called[method] = true
         end
       end
     end

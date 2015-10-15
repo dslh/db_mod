@@ -15,18 +15,14 @@ module DbMod
         #  end
         module Json
           # Enables this module to be passed to
-          # {DbMod::Statements::Configuration.extend_method} as the +wrapper+
-          # function, in which case it will retrieve the results
+          # {DbMod::Statements::Configuration.process_method_results} as the
+          # +wrapper+ function, in which case it will retrieve the results
           # and format them as a JSON string using the column names
           # from the result set for the keys of each object.
           #
-          # @param wrapped_method [Method] the method that has been wrapped
-          # @param args [*] arguments
-          #   expected to be passed to the wrapped method
+          # @param results [Object] SQL result set
           # @return [String] a JSON formatted string
-          def self.call(wrapped_method, *args)
-            results = wrapped_method.call(*args)
-
+          def self.call(results)
             # .map turns the result object into an array
             results.map { |x| x }.to_json
           end

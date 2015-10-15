@@ -1,8 +1,10 @@
 require 'pg'
-require_relative 'db_mod/exceptions'
-require_relative 'db_mod/transaction'
+
 require_relative 'db_mod/create'
+require_relative 'db_mod/exceptions'
 require_relative 'db_mod/statements'
+require_relative 'db_mod/transaction'
+require_relative 'db_mod/version'
 
 # This is the foundation module for enabling db_mod
 # support in an application. Including this module
