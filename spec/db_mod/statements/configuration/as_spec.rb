@@ -7,7 +7,7 @@ describe DbMod::Statements::Configuration::As do
       Module.new do
         include DbMod
 
-        def_statement(:foo, 'SELECT 1').as(:lolwut)
+        def_statement(:foo, 'SELECT 1') { as(:lolwut) }
       end
     end.to raise_exception ArgumentError
   end
@@ -17,7 +17,7 @@ describe DbMod::Statements::Configuration::As do
       Module.new do
         include DbMod
 
-        def_statement(:foo, 'SELECT 1').as(:json).as(:csv)
+        def_statement(:foo, 'SELECT 1') { as(:json).as(:csv) }
       end
     end.to raise_exception DbMod::Exceptions::BadMethodConfiguration
   end

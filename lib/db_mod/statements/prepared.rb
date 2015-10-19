@@ -65,13 +65,13 @@ module DbMod
       # @param mod [Module] a module with {DbMod} included
       def self.define_def_prepared(mod)
         mod.class.instance_eval do
-          define_method(:def_prepared) do |name, sql|
+          define_method(:def_prepared) do |name, sql, &block|
             sql = sql.dup
             name = name.to_sym
 
             params = Parameters.parse_params! sql
             prepared_statements[name] = sql
-            Prepared.define_prepared_method(mod, name, params)
+            Prepared.define_prepared_method(mod, name, params, &block)
           end
         end
       end
@@ -119,15 +119,13 @@ module DbMod
       # @param params [Fixnum,Array<Symbol>]
       #   expected parameter count, or a list of argument names.
       #   An empty array produces a no-argument method.
-      def self.define_prepared_method(mod, name, params)
-        if params.is_a?(Array)
-          if params.empty?
-            define_no_args_prepared_method(mod, name)
-          else
-            define_named_args_prepared_method(mod, name, params)
-          end
+      # @yield dsl block may be passed, which will be evaluated using a
+      #   {MethodConfiguration} object as scope
+      def self.define_prepared_method(mod, name, params, &block)
+        if params == []
+          define_no_args_prepared_method(mod, name, &block)
         else
-          define_fixed_args_prepared_method(mod, name, params)
+          define_prepared_method_with_args(mod, name, params, &block)
         end
       end
 
@@ -139,48 +137,22 @@ module DbMod
       #   where the method will be defined
       # @param name [Symbol] name of the method to be defined
       #   and the prepared query to be called.
-      def self.define_no_args_prepared_method(mod, name)
-        method = ->() { conn.exec_prepared(name.to_s) }
-        Configuration.def_configurable mod, name, method
+      # @yield dsl method configuration object may be passed
+      def self.define_no_args_prepared_method(mod, name, &block)
+        method = ->(*) { conn.exec_prepared(name.to_s) }
+        Configuration.def_configurable mod, name, method, &block
       end
 
-      # Define a method with the given name that accepts the
-      # given set of named parameters, that will call the prepared
-      # statement with the same name.
-      #
       # @param mod [Module] {DbMod} enabled module
       #   where the method will be defined
       # @param name [Symbol] name of the method to be defined
       #   and the prepared query to be called.
-      # @param params [Array<Symbol>] list of parameter names
-      def self.define_named_args_prepared_method(mod, name, params)
-        method = lambda do |*args|
-          args = Parameters.valid_named_args! params, args
-          conn.exec_prepared(name.to_s, args)
-        end
-
-        Configuration.def_configurable mod, name, method
-      end
-
-      # Define a method with the given name that accepts a fixed
-      # number of arguments, that will call the prepared statement
-      # with the same name.
-      #
-      # @param mod [Module] {DbMod} enabled module
-      #   where the method will be defined
-      # @param name [Symbol] name of the method to be defined
-      #   and the prepared query to be called.
-      # @param count [Fixnum] arity of the defined method,
-      #   the number of parameters that the prepared statement
-      #   requires
-      def self.define_fixed_args_prepared_method(mod, name, count)
-        method = lambda do |*args|
-          Parameters.valid_fixed_args!(count, args)
-
-          conn.exec_prepared(name.to_s, args)
-        end
-
-        Configuration.def_configurable(mod, name, method)
+      # @param params [Fixnum,Array<Symbol>]
+      #   expected parameter count, or a list of argument names.
+      #   An empty array produces a no-argument method.
+      def self.define_prepared_method_with_args(mod, name, params, &block)
+        method = ->(*args) { conn.exec_prepared(name.to_s, args) }
+        Configuration.def_configurable(mod, name, method, params, &block)
       end
 
       # Adds +prepared_statements+ to a module. This list of named

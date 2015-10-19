@@ -12,37 +12,111 @@ module DbMod
       #
       # @param mod [Module] the module where the method has been declared
       # @param name [Symbol] the name of the module that has been defined
-      # @param definition [Proc] method definition
-      # @return [DbMod::Statements::ConfigurableMethod] dsl object for
-      #   further extending the method
-      def self.def_configurable(mod, name, definition)
-        mod.instance_eval { define_method(name, definition) }
+      # @param definition [Proc] method definition, the base function which
+      #   will perform database interaction and return an SQL result object
+      # @param params [Array<Symbol>,Fixnum] declares the parameters that
+      #   the method will accept. Can either be an array of named parameters
+      #   or a integer giving the arity of the function. +[]+ may also be
+      #   given to denote a no-argument method.
+      # @yield dsl block may be passed, which will be evaluated using a
+      #   {MethodConfiguration} object as scope
+      def self.def_configurable(mod, name, definition, params = 0, &block)
+        config = MethodConfiguration.new(&block) if block_given?
 
-        ConfigurableMethod.new(mod, name)
+        definition = attach_result_processors(definition, config) if config
+        definition = attach_param_processor(definition, params)
+
+        mod.instance_eval { define_method(name, definition) }
       end
 
-      # Used by {ConfigurableMethod} (and associated code) to wrap a defined
-      # statement method or prepared method with additional result processing.
-      # A method should be provided, which accepts an SQL result set and
-      # returns some transformation of the results. The original method
-      # declaration will be replaced, so that the original method definition
-      # is called and the results are passed through this given method.
-      #
-      # @param mod [Module] the module where the method has been defined
-      # @param name [Symbol] the method name
-      # @param wrapper [#call]
-      #   a function that processes the SQL results in some way
-      def self.process_method_results(mod, name, wrapper)
-        mod.instance_eval do
-          wrapped = instance_method(name)
+      private
 
-          define_method(name, lambda do |*args|
-            wrapper.call wrapped.bind(self).call(*args)
-          end)
+      # Attaches any required parameter processing and validation to
+      # the method definition by wrapping it in a further proc as required.
+      #
+      # @param definition [Proc] base method definition
+      # @param params see {Configuration.define_prepared_method}
+      # @return [Proc] a new wrapper for +definition+
+      def self.attach_param_processor(definition, params)
+        if params.is_a?(Array) && !params.empty?
+          define_named_args_method(definition, params)
+        elsif params.is_a?(Fixnum) && params > 0
+          define_fixed_args_method(definition, params)
+        else
+          ->() { instance_exec(&definition) }
         end
+      end
+
+      # Wrap the given definition in a procedure that will validate any
+      # passed arguments, and transform them into an array that can be
+      # passed directly to +PGconn.exec_params+ or +PGconn.exec_prepared+.
+      #
+      # @param definition [Proc] base method definition
+      # @param params [Array<Symbol>] list of method parameter names
+      # @return [Proc] new method definition
+      def self.define_named_args_method(definition, params)
+        lambda do |*args|
+          args = Parameters.valid_named_args! params, args
+          instance_exec(*args, &definition)
+        end
+      end
+
+      # Wrap the given definition in a procedure that will validate that
+      # the correct number of arguments has been passed, before passing them
+      # on to the original method definition.
+      #
+      # @param definition [Proc] base method definition
+      # @param arity [Fixnum] expected number of arguments
+      # @return [Proc] new method definition
+      def self.define_fixed_args_method(definition, arity)
+        lambda do |*args|
+          Parameters.valid_fixed_args!(arity, args)
+          instance_exec(*args, &definition)
+        end
+      end
+
+      # Attaches any required result processing to the method definition,
+      # as may have been defined in a block passed to either of +def_statement+
+      # or +def_prepared+. This method is called before
+      # {Configuration.attach_param_processor}, so that the method definition
+      # can be wrapped by the parameter processor. In this way processors
+      # attached here are assured access to method parameters after any
+      # initial processing and validation has taken place.
+      #
+      # @param definition [Proc] base method definition
+      # @param config [MethodConfiguration] configuration declared at
+      #   method definition time
+      def self.attach_result_processors(definition, config)
+        config = config.to_hash
+
+        if config[:single]
+          processor = Single::COERCERS[config[:single]]
+          definition = attach_result_processor(definition, processor)
+        end
+
+        if config[:as]
+          processor = As::COERCERS[config[:as]]
+          definition = attach_result_processor(definition, processor)
+        end
+
+        definition
+      end
+
+      # Attach a processor to the chain of result processors for a method.
+      # The pattern here is something similar to rack's middleware.
+      # A result processor is constructed with a method definition, and
+      # then acts as a replacement for the method, responding to {#call}.
+      # Subclasses must implement a +process+ method, which should accept
+      # an SQL result set (or possibly, the result of other upstream
+      # processing), perform some transform on it and return the result.
+      #
+      # @param definition [Proc] base method definition
+      # @param processor [#call] result processor
+      def self.attach_result_processor(definition, processor)
+        ->(*args) { processor.call instance_exec(*args, &definition) }
       end
     end
   end
 end
 
-require_relative 'configuration/configurable_method'
+require_relative 'configuration/method_configuration'

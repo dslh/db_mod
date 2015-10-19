@@ -5,13 +5,13 @@ describe DbMod::Statements::Configuration::Single do
     Module.new do
       include DbMod
 
-      def_statement(:v, 'SELECT a FROM foo').single(:value)
-      def_prepared(:v!, 'SELECT c FROM d WHERE e = $f').single(:value!)
+      def_statement(:v, 'SELECT a FROM foo') { single(:value) }
+      def_prepared(:v!, 'SELECT c FROM d WHERE e = $f') { single(:value!) }
 
-      def_prepared(:r, 'SELECT a, b FROM foo WHERE c = $1').single(:row)
-      def_statement(:r!, 'SELECT a, b FROM foo').single(:row!)
+      def_prepared(:r, 'SELECT a, b FROM foo WHERE c = $1') { single(:row) }
+      def_statement(:r!, 'SELECT a, b FROM foo') { single(:row!) }
 
-      def_statement(:c, 'SELECT a FROM foo WHERE c > $min').single(:column)
+      def_statement(:c, 'SELECT a FROM foo WHERE c > $min') { single(:column) }
     end.create(db: 'testdb')
   end
 
@@ -89,7 +89,7 @@ describe DbMod::Statements::Configuration::Single do
       Module.new do
         include DbMod
 
-        def_statement(:a, 'SELECT 1').single(:lolwut)
+        def_statement(:a, 'SELECT 1') { single(:lolwut) }
       end
     end.to raise_exception ArgumentError
   end
@@ -99,7 +99,7 @@ describe DbMod::Statements::Configuration::Single do
       Module.new do
         include DbMod
 
-        def_statement(:a, 'SELECT 1').single(:row).single(:value)
+        def_statement(:a, 'SELECT 1') { single(:row).single(:value) }
       end
     end.to raise_exception DbMod::Exceptions::BadMethodConfiguration
   end

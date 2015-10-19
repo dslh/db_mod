@@ -6,8 +6,20 @@ describe DbMod::Statements::Configuration::As::Json do
     Module.new do
       include DbMod
 
-      def_statement(:statement, 'SELECT a, b FROM foo').as(:json)
-      def_prepared(:prepared, 'SELECT a, b FROM bar').as(:json)
+      def_statement(:statement, 'SELECT a, b FROM foo') { as(:json) }
+      def_prepared(:prepared, 'SELECT a, b FROM bar') { as(:json) }
+
+      def_statement(
+        :single,
+        'SELECT * FROM foo WHERE a = $1'
+      ) { single(:row).as(:json) }
+
+      def_statement(
+        :single!,
+        'SELECT * FROM foo WHERE a = $1'
+      ) { single(:row!).as(:json) }
+
+      def_statement(:col, 'SELECT a FROM foo') { single(:column).as(:json) }
     end.create(db: 'testdb')
   end
 
@@ -34,5 +46,20 @@ describe DbMod::Statements::Configuration::As::Json do
         )
       end
     end
+  end
+
+  it 'can be chained with single(:row)' do
+    result = [{ 'a' => '1', 'b' => '2' }]
+    expected = '{"a":"1","b":"2"}'
+
+    expect(@conn).to receive(:exec_params).exactly(2).times.and_return(result)
+    expect(subject.single(1)).to eq(expected)
+    expect(subject.single!(2)).to eq(expected)
+  end
+
+  it 'can be chained with single(:column)' do
+    result = [{ 'a' => '1' }, { 'a' => '2' }, { 'a' => '3' }]
+    expect(@conn).to receive(:query).and_return(result)
+    expect(subject.col).to eq('["1","2","3"]')
   end
 end

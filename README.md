@@ -194,21 +194,22 @@ or twice during a program's execution.
 #### Configuring defined statements
 
 `db_mod` contains a simple framework for extending these statement methods
-and prepared methods with additional result processing. A simple
-chained-method syntax is used
+and prepared methods with additional result processing. A block can be
+passed to +def_prepared+ and +def_statement+ definitions, where a basic
+DSL is made available for additional method configuration.
 
 ##### JSON and CSV formatting
 
 Statement and prepared methods can be configured on declaration by using
-`.as(:csv)` and `.as(:json)`, which will convert the result set to a string
+`as(:csv)` and `as(:json)`, which will convert the result set to a string
 formatted as either a CSV document or an array of JSON objects, respectively.
 
 ```ruby
 module Reports
   include DbMod
 
-  def_prepared(:foo, 'SELECT a, b FROM foo WHERE bar_id = $id').as(:csv)
-  def_statement(:bar, 'SElECT c, d FROM bar WHERE foo_id = $1').as(:json)
+  def_prepared(:foo, 'SELECT a, b FROM foo WHERE bar_id = $id') { as(:csv) }
+  def_statement(:bar, 'SElECT c, d FROM bar WHERE foo_id = $1') { as(:json) }
 end
 
 include Reports
@@ -222,15 +223,15 @@ bar(2) # => '[{"c":"5","d":"6"},...]'
 
 To save a lot of repetetive unboxing of query results, methods that return
 only one row, or rows with only one column, or only one row with a single
-value, can be marked as such using the `.single` extension.
+value, can be marked as such using the `single` extension.
 
 ```ruby
 module Getters
   include DbMod
 
-  def_prepared(:user, 'SELECT * FROM user WHERE id = $1').single(:row)
-  def_prepared(:name, 'SELECT name FROM user WHERE id = $1').single(:value)
-  def_statement(:ids, 'SELECT id FROM user').single(:column)
+  def_prepared(:user, 'SELECT * FROM user WHERE id = $1') { single(:row) }
+  def_prepared(:name, 'SELECT name FROM user WHERE id = $1') { single(:value) }
+  def_statement(:ids, 'SELECT id FROM user') { single(:column) }
 end
 
 # ...
@@ -245,8 +246,8 @@ When no results are returned, `:column` returns `[]` while  `:row` and
 `nil`, use `:row!` and `:value!` instead.
 
 ```ruby
-def_statement(:a, 'SELECT 1 WHERE true = false').single(:value)
-def_statement(:b, 'SELECT 1 WHERE true = false').single(:value!)
+def_statement(:a, 'SELECT 1 WHERE true = false') { single(:value) }
+def_statement(:b, 'SELECT 1 WHERE true = false') { single(:value!) }
 
 a # => nil
 b # => fail

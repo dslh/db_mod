@@ -6,8 +6,8 @@ describe DbMod::Statements::Configuration::As::Csv do
     Module.new do
       include DbMod
 
-      def_statement(:statement, 'SELECT a, b FROM foo').as(:csv)
-      def_prepared(:prepared, 'SELECT a, b FROM bar').as(:csv)
+      def_statement(:statement, 'SELECT a, b FROM foo') { as(:csv) }
+      def_prepared(:prepared, 'SELECT a, b FROM bar') { as(:csv) }
     end.create(db: 'testdb')
   end
 
