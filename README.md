@@ -4,6 +4,8 @@ Database enabled modules for ruby.
 
 [![GitHub version](https://badge.fury.io/gh/dslh%2Fdb_mod.svg)](https://github.com/dslh/db_mod)
 [![Travis CI](https://img.shields.io/travis/dslh/db_mod/master.svg)](https://travis-ci.org/dslh/db_mod)
+[![Code Climate](https://codeclimate.com/github/dslh/db_mod/badges/gpa.svg)](https://codeclimate.com/github/dslh/db_mod)
+[![Test Coverage](https://codeclimate.com/github/dslh/db_mod/badges/coverage.svg)](https://codeclimate.com/github/dslh/db_mod/coverage)
 [![Gem downloads](https://img.shields.io/gem/dt/db_mod.svg)](https://rubygems.org/gems/db_mod)
 
 [Rubydoc.info documentation](http://www.rubydoc.info/gems/db_mod)
@@ -281,5 +283,8 @@ def_statement(:a, %(
 
 # ...
 
-a(1) # === a(1, 5, 6)
+a          # === a(4, 5, 6)
+a(1)       # === a(1, 5, 6)
+a(1, 2)    # === a(1, 2, 6)
+a(1, 2, 3) # === a(1, 2, 3)
 ```
