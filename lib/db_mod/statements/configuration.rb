@@ -3,7 +3,7 @@ module DbMod
     # Provides additional functionality to statement and
     # prepared methods, allowing additional processing of
     # arguments and results using the dsl extensions
-    # exposed via {ConfigurableMethod}.
+    # exposed via {MethodConfiguration}.
     module Configuration
       # Used by submodules to when defining a method as declared by
       # +def_statement+ or +def_prepared+. Wraps the defined method
@@ -21,10 +21,10 @@ module DbMod
       # @yield dsl block may be passed, which will be evaluated using a
       #   {MethodConfiguration} object as scope
       def self.def_configurable(mod, name, definition, params = 0, &block)
-        config = MethodConfiguration.new(&block) if block_given?
+        config = MethodConfiguration.new(&block).to_hash if block_given?
 
         definition = attach_result_processors(definition, config) if config
-        definition = attach_param_processor(definition, params)
+        definition = attach_param_processor(definition, params, config)
 
         mod.instance_eval { define_method(name, definition) }
       end
@@ -35,16 +35,22 @@ module DbMod
       # the method definition by wrapping it in a further proc as required.
       #
       # @param definition [Proc] base method definition
-      # @param params see {Configuration.define_prepared_method}
+      # @param params see {Configuration.def_configurable}
+      # @param config [MethodConfiguration] for default values
       # @return [Proc] a new wrapper for +definition+
-      def self.attach_param_processor(definition, params)
-        if params.is_a?(Array) && !params.empty?
-          define_named_args_method(definition, params)
-        elsif params.is_a?(Fixnum) && params > 0
-          define_fixed_args_method(definition, params)
-        else
-          ->() { instance_exec(&definition) }
-        end
+      def self.attach_param_processor(definition, params, config)
+        wrapped =
+          if params.is_a?(Array) && !params.empty?
+            define_named_args_method(definition, params)
+
+          elsif params.is_a?(Fixnum) && params > 0
+            define_fixed_args_method(definition, params)
+          else
+            ->() { instance_exec(&definition) }
+          end
+
+        return wrapped unless config
+        Defaults.extend(wrapped, params, config[:defaults])
       end
 
       # Wrap the given definition in a procedure that will validate any
@@ -87,17 +93,8 @@ module DbMod
       # @param config [MethodConfiguration] configuration declared at
       #   method definition time
       def self.attach_result_processors(definition, config)
-        config = config.to_hash
-
-        if config[:single]
-          processor = Single::COERCERS[config[:single]]
-          definition = attach_result_processor(definition, processor)
-        end
-
-        if config[:as]
-          processor = As::COERCERS[config[:as]]
-          definition = attach_result_processor(definition, processor)
-        end
+        definition = Single.extend(definition, config)
+        definition = As.extend(definition, config)
 
         definition
       end
@@ -105,7 +102,7 @@ module DbMod
       # Attach a processor to the chain of result processors for a method.
       # The pattern here is something similar to rack's middleware.
       # A result processor is constructed with a method definition, and
-      # then acts as a replacement for the method, responding to {#call}.
+      # then acts as a replacement for the method, responding to +#call+.
       # Subclasses must implement a +process+ method, which should accept
       # an SQL result set (or possibly, the result of other upstream
       # processing), perform some transform on it and return the result.

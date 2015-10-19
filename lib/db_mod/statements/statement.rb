@@ -81,7 +81,7 @@ module DbMod
       #   expected parameter count, or a list of argument names.
       #   An empty array produces a no-argument method.
       # @yield dsl block may be passed, which will be evaluated using a
-      #   {MethodConfiguration} object as scope
+      #   {Configuration::MethodConfiguration} object as scope
       def self.define_statement_method(mod, name, params, sql, &block)
         if params == []
           Configuration.def_configurable(mod, name, ->(*) { query sql }, &block)

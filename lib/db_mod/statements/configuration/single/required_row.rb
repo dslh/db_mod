@@ -14,7 +14,7 @@ module DbMod
         #  end
         module RequiredRow
           # Enables this module to be passed to
-          # {DbMod::Statements::Configuration.process_method_results} as the
+          # {DbMod::Statements::Configuration.attach_result_processor} as the
           # +wrapper+ function, where it will return the first row of the
           # result set, or raise an exception if exactly one row is not
           # returned.

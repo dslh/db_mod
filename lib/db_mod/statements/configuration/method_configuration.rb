@@ -1,4 +1,5 @@
 require_relative 'as'
+require_relative 'defaults'
 require_relative 'single'
 
 module DbMod
@@ -38,11 +39,34 @@ module DbMod
         # See {DbMod::Statements::Configuration::Single} for
         # more details.
         #
-        # @param type [Symbol] see {SINGLE_TYPES}
+        # @param type [Symbol] see {Configuration::Single::COERCERS}
         # @return [self]
         def single(type)
           one_of! type, Configuration::Single::COERCERS
           set_once! :single, type
+
+          self
+        end
+
+        # Declares default values for method parameters.
+        # For methods with named parameters, a hash of argument
+        # names and default values should be provided.
+        # For methods with indexed parameters, an array of 1..n
+        # default values should be provided, where n is the
+        # method's arity. In this case default values will be
+        # applied to the right-hand side of the argument list,
+        # as with normal parameter default rules.
+        #
+        # @param defaults [Hash<Symbol,value>,Array<value>]
+        #   default parameter values
+        def defaults(*defaults)
+          if defaults.size == 1 && defaults.first.is_a?(Hash)
+            defaults = defaults.first
+          elsif defaults.last.is_a? Hash
+            fail ArgumentError, 'mixed default declaration not allowed'
+          end
+
+          set_once! :defaults, defaults
 
           self
         end
@@ -59,7 +83,8 @@ module DbMod
         # may not be called more than once, or else raises
         # {DbMod::Exceptions::BadMethodConfiguration}.
         #
-        # @param method [Symbol] method being called
+        # @param setting [Symbol] setting name
+        # @param value [Object] setting value
         def set_once!(setting, value)
           if @settings.key? setting
             fail Exceptions::BadMethodConfiguration, "#{setting} already called"

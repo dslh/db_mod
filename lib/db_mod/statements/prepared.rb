@@ -120,7 +120,7 @@ module DbMod
       #   expected parameter count, or a list of argument names.
       #   An empty array produces a no-argument method.
       # @yield dsl block may be passed, which will be evaluated using a
-      #   {MethodConfiguration} object as scope
+      #   {Configuration::MethodConfiguration} object as scope
       def self.define_prepared_method(mod, name, params, &block)
         if params == []
           define_no_args_prepared_method(mod, name, &block)

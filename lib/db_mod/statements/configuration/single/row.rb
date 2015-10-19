@@ -14,7 +14,7 @@ module DbMod
         #  end
         module Row
           # Enables this module to be passed to
-          # {DbMod::Statements::Configuration.process_method_results} as the
+          # {DbMod::Statements::Configuration.attach_result_processor} as the
           # +wrapper+ function, where it will return the first row of the
           # result set, or +nil+ if the result set is empty.
           #

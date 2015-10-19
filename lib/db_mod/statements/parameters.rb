@@ -101,7 +101,9 @@ module DbMod
       # @return [Array] values to be passed to the prepared statement
       def self.parameter_array(expected, args)
         expected.map do |arg|
-          args[arg] || fail(ArgumentError, "missing arg #{arg}")
+          fail(ArgumentError, "missing arg #{arg}") unless args.key? arg
+
+          args[arg]
         end
       end
 

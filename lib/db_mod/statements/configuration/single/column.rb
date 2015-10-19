@@ -13,7 +13,7 @@ module DbMod
         #  end
         module Column
           # Enables this module to be passed to
-          # {DbMod::Statements::Configuration.process_method_results} as the
+          # {DbMod::Statements::Configuration.attach_result_processor} as the
           # +wrapper+ function, where it will return an array of the first
           # value from every row in the result set.
           #

@@ -16,6 +16,7 @@ def_statement(:a, 'SELECT * FROM foo WHERE id = $1') { single(:row).as(:json) }
   as a block. This allows method configuration to be collected ahead of
   method definition, and hence a bit more smarts during the method declaration
   process - [@dslh](https://github.com/dslh).
+* `defaults` - default parameter values for statement and prepared methods - [@dslh](https://github.com/dslh).
 * `single(:row/:column).as(:json)` now works - [@dslh](https://github.com/dslh).
 
 0.0.4 (2015-10-15)

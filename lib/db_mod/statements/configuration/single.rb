@@ -10,7 +10,7 @@ module DbMod
       # Provides convenience extensions for statement and
       # prepared methods that return only a single result,
       # row, or column. The normal way to access this functionality
-      # is via {ConfigurableMethod#single}, which is available
+      # is via {MethodConfiguration#single}, which is available
       # when defining a statement method or prepared method:
       #
       #  def_statement(:a, 'SELECT name FROM a WHERE id=$1') { single(:value) }
@@ -30,7 +30,7 @@ module DbMod
       # instead of returning +nil+, use +.single(:row!)+ or
       # +.single(:value!)+.
       module Single
-        # List of allowed parameters for {#single},
+        # List of allowed parameters for {MethodConfiguration#single},
         # and the methods used to process them.
         COERCERS = {
           value: Single::Value,
@@ -39,6 +39,18 @@ module DbMod
           row!: Single::RequiredRow,
           column: Single::Column
         }
+
+        # Extend the given method definition with additional
+        # result coercion.
+        #
+        # @param definition [Proc] base method definition
+        # @param config [MethodConfiguration] method configuration
+        def self.extend(definition, config)
+          type = config[:single]
+          return definition if type.nil?
+
+          Configuration.attach_result_processor definition, COERCERS[type]
+        end
       end
     end
   end

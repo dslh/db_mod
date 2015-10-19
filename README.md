@@ -3,9 +3,8 @@
 Database enabled modules for ruby.
 
 [![GitHub version](https://badge.fury.io/gh/dslh%2Fdb_mod.svg)](https://github.com/dslh/db_mod)
-[![Gem Version](https://badge.fury.io/rb/db_mod.svg)](https://rubygems.org/gems/db_mod)
 [![Travis CI](https://img.shields.io/travis/dslh/db_mod/master.svg)](https://travis-ci.org/dslh/db_mod)
-![Gem downloads](https://img.shields.io/gem/dt/db_mod.svg)
+[![Gem downloads](https://img.shields.io/gem/dt/db_mod.svg)](https://rubygems.org/gems/db_mod)
 
 [Rubydoc.info documentation](http://www.rubydoc.info/gems/db_mod)
 
@@ -19,7 +18,7 @@ For the moment `db_mod` only supports PostgreSQL databases via the
 `pg` gem. This gem is still in the early stages of development and no
 guarantees will be made about backwards compatibility until v0.1.0.
 
-Issues, pull requests, comments and feedback all welcomed.
+Issues, feature or pull requests, comments and feedback all welcomed.
 
 ## Usage
 
@@ -251,4 +250,36 @@ def_statement(:b, 'SELECT 1 WHERE true = false') { single(:value!) }
 
 a # => nil
 b # => fail
+```
+
+##### Default parameter values
+
+Arbitrary default parameter values can be supplied using `defaults`.
+
+For methods with named parameters:
+
+```ruby
+def_statement(:a, 'SELECT * FROM foo WHERE id = $id AND y > $min') do
+  defaults min: 10
+end
+
+# ...
+
+a(id: 1) # === a(id: 1, min: 10)
+```
+
+For methods with fixed parameters:
+
+```ruby
+def_statement(:a, %(
+  SELECT *
+    FROM foo
+   WHERE x = $1
+     AND y < $2
+     AND z > $3
+)) { defaults 4, 5, 6 }
+
+# ...
+
+a(1) # === a(1, 5, 6)
 ```

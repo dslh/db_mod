@@ -8,7 +8,7 @@ module DbMod
       # module instance methods returning an SQL result set
       # to be extended with additional result coercion and
       # formatting. The normal way to access this functionality
-      # is via {ConfigurableMethod#as},
+      # is via {MethodConfiguration#as},
       # which is available when defining a statement method
       # or prepared method:
       #
@@ -22,6 +22,18 @@ module DbMod
           csv: As::Csv,
           json: As::Json
         }
+
+        # Extend the given method definition with additional
+        # result coercion.
+        #
+        # @param definition [Proc] base method definition
+        # @param config [MethodConfiguration] method configuration
+        def self.extend(definition, config)
+          type = config[:as]
+          return definition if type.nil?
+
+          Configuration.attach_result_processor definition, COERCERS[type]
+        end
       end
     end
   end
