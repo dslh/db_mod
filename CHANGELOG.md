@@ -1,5 +1,6 @@
-0.0.5
-=====
+0.0.5 (2015-10-19)
+==================
+
 Breaking changes. Any statement or prepared methods with additional configuration
 should have such configuration declared in a block, rather than a method chain
 (although methods can be chained inside the method block). E.g.
