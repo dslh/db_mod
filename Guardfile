@@ -92,3 +92,7 @@ guard :bundler do
   # Assume files are symlinked from somewhere
   files.each { |file| watch(helper.real_path(file)) }
 end
+
+guard :inch, pedantic: true do
+  watch(/.+\.rb/)
+end

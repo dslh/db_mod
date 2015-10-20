@@ -30,6 +30,7 @@ module DbMod
       #
       # @param count [Fixnum] arity of the method being called.
       # @param args [Array] list of arguments given.
+      # @raise [ArgumentError] if the wrong number of arguments is given
       def self.valid_fixed_args!(count, args)
         unless args.size == count
           fail ArgumentError, "#{args.size} args given, #{count} expected"
@@ -51,6 +52,8 @@ module DbMod
       # @param sql [String] statement to prepare
       # @return [Fixnum,Array<Symbol>] description of
       #   prepared statement's parameters
+      # @raise [ArgumentError] if there is any sort of problem
+      #   with the parameters declared in the sql statement
       def self.parse_params!(sql)
         Parameters.valid_sql_params! sql
         numbered = sql.scan NUMBERED_PARAM
@@ -81,6 +84,8 @@ module DbMod
       # Raises +ArgumentError+ otherwise.
       #
       # @param args [Array<Hash<Symbol>>] method arguments being validated
+      # @raise [ArgumentError] if the arguments passed to the method
+      #   do not pass validation
       def self.wrapped_hash!(args)
         unless args.size == 1
           fail ArgumentError, "unexpected arguments: #{args.inspect}"
@@ -99,6 +104,7 @@ module DbMod
       # @param expected [Array<Symbol>] the parameters expected to be present
       # @param args [Hash] given parameters
       # @return [Array] values to be passed to the prepared statement
+      # @raise [ArgumentError] if any arguments are missing
       def self.parameter_array(expected, args)
         expected.map do |arg|
           fail(ArgumentError, "missing arg #{arg}") unless args.key? arg
@@ -110,6 +116,11 @@ module DbMod
       # Fails if any parameters in an sql query aren't
       # in the expected format. They must either be
       # lower_case_a_to_z or digits only.
+      #
+      # @param sql [String] sql statement that may or may
+      #   not contain parameters
+      # @raise [ArgumentError] if there are any invalid
+      #   parameter declarations
       def self.valid_sql_params!(sql)
         sql.scan(/\$[A-Za-z0-9_]+/) do |param|
           unless param =~ NAMED_OR_NUMBERED
@@ -123,6 +134,8 @@ module DbMod
       #
       # @param params [Array<String>] '$1','$2', etc...
       # @return [Fixnum] parameter count
+      # @raise [ArgumentError] if there are any problems with the
+      #   given argument list
       def self.parse_numbered_params!(params)
         params.sort!
         params.uniq!

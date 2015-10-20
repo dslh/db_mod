@@ -16,11 +16,16 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency 'pg'
 
-  s.add_development_dependency 'simplecov'
+  s.add_development_dependency 'bundler'
+  s.add_development_dependency 'codeclimate-test-reporter'
+  s.add_development_dependency 'inch'
+  s.add_development_dependency 'rake'
+  s.add_development_dependency 'redcarpet'
   s.add_development_dependency 'rspec'
   s.add_development_dependency 'rspec-mocks'
+  s.add_development_dependency 'rubocop'
+  s.add_development_dependency 'simplecov'
   s.add_development_dependency 'yard'
-  s.add_development_dependency 'bundler'
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- spec/*`.split("\n")

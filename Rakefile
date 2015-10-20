@@ -15,7 +15,7 @@ require 'rainbow/ext/string' unless String.respond_to?(:color)
 require 'rubocop/rake_task'
 RuboCop::RakeTask.new
 
-task default: [:rubocop, :spec]
+task default: [:rubocop, :spec, :inch]
 
 require 'yard'
 DOC_FILES = ['lib/**/*.rb', 'README.md']
@@ -23,3 +23,6 @@ DOC_FILES = ['lib/**/*.rb', 'README.md']
 YARD::Rake::YardocTask.new(:doc) do |t|
   t.files = DOC_FILES
 end
+
+require 'inch/rake'
+Inch::Rake::Suggest.new

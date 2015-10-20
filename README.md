@@ -6,6 +6,7 @@ Database enabled modules for ruby.
 [![Travis CI](https://img.shields.io/travis/dslh/db_mod/master.svg)](https://travis-ci.org/dslh/db_mod)
 [![Code Climate](https://codeclimate.com/github/dslh/db_mod/badges/gpa.svg)](https://codeclimate.com/github/dslh/db_mod)
 [![Test Coverage](https://codeclimate.com/github/dslh/db_mod/badges/coverage.svg)](https://codeclimate.com/github/dslh/db_mod/coverage)
+[![Inline docs](http://inch-ci.org/github/dslh/db_mod.svg?branch=master)](http://inch-ci.org/github/dslh/db_mod)
 [![Gem downloads](https://img.shields.io/gem/dt/db_mod.svg)](https://rubygems.org/gems/db_mod)
 
 [Rubydoc.info documentation](http://www.rubydoc.info/gems/db_mod)

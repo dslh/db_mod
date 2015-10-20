@@ -14,6 +14,7 @@ module DbMod
         # Creates a new configuration object to be used as the scope for
         # blocks passed to +def_statement+ and +def_prepared+ declarations.
         #
+        # @param block [proc] block containing method configuration declaration
         # @yield executes the block using +self+ as scope
         def initialize(&block)
           @settings = {}

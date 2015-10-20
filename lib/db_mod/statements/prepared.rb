@@ -137,12 +137,18 @@ module DbMod
       #   where the method will be defined
       # @param name [Symbol] name of the method to be defined
       #   and the prepared query to be called.
+      # @param block [Proc] see {Configuration::MethodConfiguration}
       # @yield dsl method configuration object may be passed
       def self.define_no_args_prepared_method(mod, name, &block)
         method = ->(*) { conn.exec_prepared(name.to_s) }
         Configuration.def_configurable mod, name, method, &block
       end
 
+      # Define a method on the given module with the given name
+      # and parameters that will call the prepared statement with
+      # the same name. Additional method configuration settings may
+      # be passed via a block.
+      #
       # @param mod [Module] {DbMod} enabled module
       #   where the method will be defined
       # @param name [Symbol] name of the method to be defined
@@ -150,6 +156,8 @@ module DbMod
       # @param params [Fixnum,Array<Symbol>]
       #   expected parameter count, or a list of argument names.
       #   An empty array produces a no-argument method.
+      # @param block [Proc] see {Configuration::MethodConfiguration}
+      # @yield dsl method configuration object may be passed
       def self.define_prepared_method_with_args(mod, name, params, &block)
         method = ->(*args) { conn.exec_prepared(name.to_s, args) }
         Configuration.def_configurable(mod, name, method, params, &block)

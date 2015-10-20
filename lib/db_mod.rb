@@ -11,12 +11,14 @@ require_relative 'db_mod/version'
 # will give your class or object the protected methods
 # {#db_connect} and {#conn=}, allowing the connection
 # to be set or created, as well as the methods {#conn},
-# {#query}, {#transaction}, and {#def_prepared}.
+# {#query}, {#transaction}, and +def_prepared+.
 module DbMod
   include Transaction
 
   # When a module includes {DbMod}, we define some
   # class-level functions specific to the module.
+  #
+  # @param mod [Module] module which has had {DbMod} included
   def self.included(mod)
     DbMod::Create.setup(mod)
     DbMod::Statements.setup(mod)
@@ -30,6 +32,9 @@ module DbMod
   attr_accessor :conn
 
   # Shorthand for +conn.query+
+  #
+  # @param sql [String] SQL query to execute
+  # @return [Object] SQL result set
   def query(sql)
     unless @conn
       fail DbMod::Exceptions::ConnectionNotSet, 'db_connect not called'
