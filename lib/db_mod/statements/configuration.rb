@@ -95,6 +95,7 @@ module DbMod
       def self.attach_result_processors(definition, config)
         definition = Single.extend(definition, config)
         definition = As.extend(definition, config)
+        definition = Returning.extend(definition, config)
 
         definition
       end
@@ -110,7 +111,13 @@ module DbMod
       # @param definition [Proc] base method definition
       # @param processor [#call] result processor
       def self.attach_result_processor(definition, processor)
-        ->(*args) { processor.call instance_exec(*args, &definition) }
+        if processor.is_a? Proc
+          lambda do |*args|
+            instance_exec(instance_exec(*args, &definition), &processor)
+          end
+        else
+          ->(*args) { processor.call instance_exec(*args, &definition) }
+        end
       end
     end
   end

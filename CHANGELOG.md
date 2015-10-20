@@ -2,6 +2,7 @@
 =====
 
 * Procs now allowed for default parameter values - [@dslh](https://github.com/dslh).
+* Adds `returning` block to method configuration options - [@dslh](https://github.com/dslh).
 
 0.0.5 (2015-10-19)
 ==================

@@ -24,7 +24,7 @@ module DbMod
         }
 
         # Extend the given method definition with additional
-        # result coercion, if specified.
+        # result coercion, if specified using {MethodConfiguration#as}.
         #
         # @param definition [Proc] base method definition
         # @param config [MethodConfiguration] method configuration

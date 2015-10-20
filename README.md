@@ -317,3 +317,38 @@ Note that the argument list will be partially constructed at the time it
 is received by the proc; other default values may or may not yet have been
 populated. Defaults will be populated in the order that they are declared
 using `defaults`.
+
+##### Custom method return values
+
+Besides the built-in result transformations provided by `as` and `single`,
+`db_mod` also allows arbitrary control over the return value of statement
+and prepared methods using a block provided via `returning`:
+
+```ruby
+def_prepared(:a, 'SELECT name, sound FROM animals') do
+  # Block parameter is the SQL result set
+  returning do |animals|
+    animals.map do |animal|
+      "the #{animal['name']} goes #{animal['sound']}"
+    end.join ' and '
+  end
+end
+
+def_prepared(:important_report!, 'SELECT address FROM email WHERE id = $1') do
+  # 'single' and 'as' will transform the result set
+  # before it is passed to the block
+  single(:value)
+
+  returning { |email| send_email(email, a) }
+end
+
+# Block has instance-level scope
+def send_email(address, body)
+  # ...
+end
+
+# ...
+
+important_report!(123)
+  # === send_email('ex@mp.le', 'the sheep goes baa and the cow goes moo')
+```

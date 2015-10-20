@@ -1,5 +1,6 @@
 require_relative 'as'
 require_relative 'defaults'
+require_relative 'returning'
 require_relative 'single'
 
 module DbMod
@@ -77,6 +78,24 @@ module DbMod
           end
 
           set_once! :defaults, defaults
+
+          self
+        end
+
+        # Declares a block that will be used to transform or replace
+        # the SQL result set before it is returned from the defined
+        # method. The block should accept a single parameter and can
+        # return pretty much whatever it wants.
+        #
+        # The block will be applied after any transforms specified by
+        # {#as} or {#single} have already been applied.
+        #
+        # @param block [Proc] block to be executed on the method's result set
+        # @return [self]
+        def returning(&block)
+          fail ArgumentError, 'block required' unless block_given?
+
+          set_once! :returning, block
 
           self
         end
