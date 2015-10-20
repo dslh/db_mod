@@ -46,7 +46,8 @@ module DbMod
       # Defines a module-specific +def_statement+ function
       # for a module that has just had {DbMod} included.
       #
-      # @param mod [Module]
+      # @param mod [Module] module with {DbMod} included
+      # @see DbMod.included
       def self.setup(mod)
         Statement.define_def_statement(mod)
       end

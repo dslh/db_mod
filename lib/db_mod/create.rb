@@ -16,7 +16,9 @@ module DbMod
     # for a module that has just had {DbMod}
     # included.
     #
-    # @param mod [Module]
+    # @param mod [Module] the module where {DbMod}
+    #   has been included
+    # @see DbMod.included
     def self.setup(mod)
       mod.class.instance_eval do
         define_method(:create) do |options = {}|

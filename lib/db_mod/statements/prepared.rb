@@ -46,7 +46,8 @@ module DbMod
       # Defines a module-specific +def_prepared+ function
       # for a module that has just had {DbMod} included.
       #
-      # @param mod [Module]
+      # @param mod [Module] module including {DbMod}
+      # @see DbMod.included
       def self.setup(mod)
         Prepared.define_def_prepared(mod)
         Prepared.define_prepared_statements(mod)

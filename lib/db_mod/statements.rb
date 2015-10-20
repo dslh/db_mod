@@ -14,6 +14,7 @@ module DbMod
     # defines module-level +def_statement+ and +def_prepared+ dsl methods.
     #
     # @param mod [Module] module that has had {DbMod} included
+    # @see DbMod.included
     def self.setup(mod)
       DbMod::Statements::Prepared.setup(mod)
       DbMod::Statements::Statement.setup(mod)

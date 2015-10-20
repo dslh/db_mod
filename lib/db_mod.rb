@@ -17,8 +17,17 @@ module DbMod
 
   # When a module includes {DbMod}, we define some
   # class-level functions specific to the module.
+  # This technique is required where it is not
+  # sufficient to simply define a module method
+  # on {DbMod} itself due to metaprogramming techniques
+  # requiring access to the module as +self+.
+  #
+  # See {DbMod::Create.setup}
+  # and {DbMod::Statements.setup}
   #
   # @param mod [Module] module which has had {DbMod} included
+  # @see http://ruby-doc.org/core-2.2.3/Module.html#method-i-included
+  #   Module#included
   def self.included(mod)
     DbMod::Create.setup(mod)
     DbMod::Statements.setup(mod)
@@ -29,7 +38,18 @@ module DbMod
   # Database object to be used for all database
   # interactions in this module.
   # Use {#db_connect} to initialize the object.
-  attr_accessor :conn
+  #
+  # @return [PGconn] for now, only PostgreSQL is supported
+  attr_reader :conn
+
+  # A custom-built connection object
+  # may be supplied in place of calling {#db_connect}.
+  # Be aware in this case that certain responsibilities
+  # of {#db_connect} may need to be taken care of manually,
+  # in particular preparing SQL statements.
+  #
+  # @param [PGconn]
+  attr_writer :conn
 
   # Shorthand for +conn.query+
   #

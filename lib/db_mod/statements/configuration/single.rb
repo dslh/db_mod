@@ -41,10 +41,12 @@ module DbMod
         }
 
         # Extend the given method definition with additional
-        # result coercion.
+        # result coercion, if specified.
         #
         # @param definition [Proc] base method definition
         # @param config [MethodConfiguration] method configuration
+        # @return [Proc] wrapped method definition, or the original
+        #   definition if no coercion has been specified
         def self.extend(definition, config)
           type = config[:single]
           return definition if type.nil?
