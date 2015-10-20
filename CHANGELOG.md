@@ -1,3 +1,8 @@
+0.0.6
+=====
+
+* Procs now allowed for default parameter values - [@dslh](https://github.com/dslh).
+
 0.0.5 (2015-10-19)
 ==================
 

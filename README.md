@@ -289,3 +289,31 @@ a(1)       # === a(1, 5, 6)
 a(1, 2)    # === a(1, 2, 6)
 a(1, 2, 3) # === a(1, 2, 3)
 ```
+
+A proc may be given as the default value for any parameter.
+The proc should accept one parameter, which will be the argument list/hash
+(depending on if the statement uses numbered or named arguments)
+and should return a single value to be used for this execution
+of the query.
+
+```ruby
+def_prepared(:default_min, %(
+  SELECT default_min
+    FROM defaults
+   WHERE foo_id = $1
+)) { single(:value) }
+
+def_prepared(:report, 'SELECT * FROM a WHERE b = $c AND d > $e') do
+  defaults min: ->(args) { default_min(args[:c]) }
+  as :json
+end
+```
+
+The above example shows how the proc will be executed using the instance
+of the `DbMod` module as scope, so statement, prepared, or other methods
+may be accessed.
+
+Note that the argument list will be partially constructed at the time it
+is received by the proc; other default values may or may not yet have been
+populated. Defaults will be populated in the order that they are declared
+using `defaults`.

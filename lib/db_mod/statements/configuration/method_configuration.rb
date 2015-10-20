@@ -58,8 +58,17 @@ module DbMod
         # applied to the right-hand side of the argument list,
         # as with normal parameter default rules.
         #
+        # In place of a fixed default value, a lambda +Proc+
+        # may be supplied. In this case the proc will be executed,
+        # given the partially constructed argument list/hash and
+        # scoped against the instance variable where the prepared
+        # or statement method is defined. It should return a single
+        # value to be used for that particular execution of the
+        # method.
+        #
         # @param defaults [Hash<Symbol,value>,Array<value>]
         #   default parameter values
+        # @return [self]
         def defaults(*defaults)
           if defaults.size == 1 && defaults.first.is_a?(Hash)
             defaults = defaults.first

@@ -14,6 +14,11 @@ module DbMod
       #    RETURNING p, q, r
       #  )) { defaults(5, 6).single(:row) }
       #
+      #  def_prepared(:c, 'SELECT a FROM b WHERE d = $e AND f > $g') do
+      #    # procs may be used
+      #    defaults g: ->(args) { args[:e] * 10 }
+      #  end
+      #
       #  # ...
       #
       #  a    # y => 10
@@ -21,6 +26,9 @@ module DbMod
       #
       #  # defaults filled in from the right
       #  b 1, 2 # => { 'p' => '1', 'q' => '2', 'r' => '6' }
+      #
+      #  # proc defaults executed when method is called
+      #  c e: 2 # === c e: 2, g: 20
       module Defaults
         # Extend a method definition by wrapping it with a proc that will
         # try to fill in any omitted arguments with given defaults.
@@ -32,7 +40,10 @@ module DbMod
         # @param defaults [Hash<Symbol,value,Array<value>]
         #   default values, in the same form as they would be provided
         #   to the original method definition except that some values
-        #   may be omitted
+        #   may be omitted. Defaults may either be constant values, or
+        #   a lambda proc may be given, which will be passed the
+        #   entirety of the argument list and should return a single
+        #   value to be used when none is given
         # @return [Proc] new method definition, or the same one
         #   if no default values have been appended
         def self.extend(definition, params, defaults)
@@ -57,14 +68,14 @@ module DbMod
         # @param definition [Proc] base method definition,
         #   with parameter validation already attached
         # @param defaults [Hash<Symbol,value>]
-        #   default parameter values
+        #   see {Defaults.extend}
         def self.extend_named_args_method(definition, defaults)
           unless defaults.is_a? Hash
             fail ArgumentError, 'hash expected for defaults'
           end
 
           lambda do |*args|
-            Defaults.use_named_defaults(args, defaults)
+            Defaults.use_named_defaults(self, args, defaults)
             instance_exec(*args, &definition)
           end
         end
@@ -72,11 +83,15 @@ module DbMod
         # Fill in any missing parameter arguments using default
         # values where available.
         #
+        # @param scope [Object] scope to be used for executing
+        #   default values that are lambda procedures. Should
+        #   be the instance object where the method has been
+        #   defined.
         # @param args [[Hash<Symbol,value>]] method arguments
         #   before processing and validation
         # @param defaults [Hash<Symbol,value>]
         #   default parameter values
-        def self.use_named_defaults(args, defaults)
+        def self.use_named_defaults(scope, args, defaults)
           # Special case when no args given.
           args << {} if args.empty?
 
@@ -85,7 +100,30 @@ module DbMod
           return args unless args.last.is_a? Hash
 
           defaults.each do |arg, value|
-            args.last[arg] = value unless args.last.key? arg
+            next if args.last.key? arg
+
+            args.last[arg] = value! value, scope, args.last
+          end
+        end
+
+        # Execute the default 'value' if it is a +Proc+,
+        # or just return it.
+        #
+        # @param value [Proc,Object] default value as specified
+        #   by {MethodConfiguration#defaults}
+        # @param scope [Object] scope to be used for executing
+        #   default values that are lambda procedures. Should
+        #   be the instance object where the method has been
+        #   defined.
+        # @param args [Hash,Array] fixed or named argument
+        #   list, to be passed to the 'value' if it is a proc
+        # @return [Object] value to be passed to the parametered
+        #   database query
+        def self.value!(value, scope, args)
+          if value.is_a? Proc
+            scope.instance_exec(args, &value)
+          else
+            value
           end
         end
 
@@ -112,7 +150,7 @@ module DbMod
           fail ArgumentError, 'too many defaults' if arity.min < 0
 
           lambda do |*args|
-            Defaults.use_fixed_defaults(args, defaults, arity)
+            Defaults.use_fixed_defaults(self, args, defaults, arity)
             instance_exec(*args, &definition)
           end
         end
@@ -120,18 +158,22 @@ module DbMod
         # Fill in any missing parameter arguments using default values
         # where available.
         #
+        # @param scope [Object] scope to be used for executing
+        #   default values that are lambda procedures. Should
+        #   be the instance object where the method has been
+        #   defined.
         # @param args [Array] method arguments
         #   before processing and validation
         # @param defaults [Array] default parameter values
         # @param arity [Range<Fixnum>] number of arguments
         #   expected by the base method definition
-        def self.use_fixed_defaults(args, defaults, arity)
+        def self.use_fixed_defaults(scope, args, defaults, arity)
           unless arity.include? args.count
             fail ArgumentError, "#{args.count} given, (#{arity}) expected"
           end
 
           defaults[args.size - arity.min...defaults.size].each do |arg|
-            args << arg
+            args << value!(arg, scope, args)
           end
         end
       end

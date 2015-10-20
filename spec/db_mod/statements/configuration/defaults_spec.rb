@@ -136,6 +136,67 @@ describe DbMod::Statements::Configuration::Defaults do
     end
   end
 
+  context 'procs as defaults' do
+    MINS_FOR = {
+      1 => 10,
+      2 => 20
+    }
+
+    subject do
+      Module.new do
+        include DbMod
+
+        def min_for(args)
+          MINS_FOR[args[:id]]
+        end
+
+        def_prepared(:a, %(
+          SELECT *
+            FROM foo
+           WHERE id = $1
+             AND x > $2
+        )) { defaults ->(args) { MINS_FOR[args.first] } }
+
+        def_prepared(:b, %(
+          SELECT *
+            FROM foo
+           WHERE id = $id
+             AND x > $min
+        )) { defaults min: ->(args) { min_for(args) } }
+      end.create db: 'testdb'
+    end
+
+    it 'works with indexed parameters' do
+      expect(@conn).to receive(:exec_prepared).with('a', [1, 10])
+      subject.a(1)
+
+      expect(@conn).to receive(:exec_prepared).with('a', [2, 20])
+      subject.a(2)
+
+      expect(@conn).to receive(:exec_prepared).with('a', [1, 11])
+      subject.a(1, 11)
+
+      expect(@conn).to receive(:exec_prepared).with('a', [3, nil])
+      subject.a(3)
+    end
+
+    it 'works with named parameters' do
+      expect(@conn).to receive(:exec_prepared).with('b', [1, 10])
+      subject.b(id: 1)
+
+      expect(@conn).to receive(:exec_prepared).with('b', [2, 20])
+      subject.b(id: 2)
+
+      expect(@conn).to receive(:exec_prepared).with('b', [1, 11])
+      subject.b(id: 1, min: 11)
+
+      expect(@conn).to receive(:exec_prepared).with('b', [3, nil])
+      subject.b(id: 3)
+
+      expect { subject.b }.to raise_exception ArgumentError
+    end
+  end
+
   context 'definition-time validation' do
     it 'must use named or indexed parameters appropriately' do
       expect do
