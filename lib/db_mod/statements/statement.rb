@@ -61,13 +61,13 @@ module DbMod
       #
       # @param mod [Module] a module with {DbMod} included
       def self.define_def_statement(mod)
-        mod.class.instance_eval do
+        class << mod
           define_method(:def_statement) do |name, sql, &block|
             sql = sql.dup
             name = name.to_sym
 
             params = Parameters.parse_params! sql
-            Statement.define_statement_method(mod, name, params, sql, &block)
+            Statement.define_statement_method(self, name, params, sql, &block)
           end
         end
       end

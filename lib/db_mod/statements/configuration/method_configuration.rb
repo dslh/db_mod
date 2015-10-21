@@ -15,11 +15,15 @@ module DbMod
         # Creates a new configuration object to be used as the scope for
         # blocks passed to +def_statement+ and +def_prepared+ declarations.
         #
+        # @param args [*] one or more +MethodConfiguration+ objects or hashes
+        #   from which existing settings will be merged
         # @param block [proc] block containing method configuration declaration
         # @yield executes the block using +self+ as scope
-        def initialize(&block)
+        def initialize(*args, &block)
           @settings = {}
           instance_exec(&block) if block_given?
+
+          merge_settings(args)
         end
 
         # Extend the method by converting results into a given
@@ -27,6 +31,8 @@ module DbMod
         # under {DbMod::Statements::Configuration::As}.
         #
         # @param type [:csv,:json] output format for the method
+        #   may be set to +nil+ or +false+ to un-set any
+        #   inherited setting
         # @return [self]
         def as(type)
           one_of! type, Configuration::As::COERCERS
@@ -42,6 +48,8 @@ module DbMod
         # more details.
         #
         # @param type [Symbol] see {Configuration::Single::COERCERS}
+        #   may be set to +nil+ or +false+ to un-set any
+        #   inherited setting
         # @return [self]
         def single(type)
           one_of! type, Configuration::Single::COERCERS
@@ -107,6 +115,34 @@ module DbMod
         end
 
         private
+
+        # Merge settings from constructor arguments. Allowed arguments
+        # are hashes, other {MethodConfiguration} objects, or procs that
+        # will be executed with a {MethodConfiguration} object as the
+        # scope.
+        #
+        # @param args [Array] array of objects containing method
+        #   configuration settings
+        def merge_settings(args)
+          inherited_settings = {}
+          args.each do |arg|
+            inherited_settings.merge! arg_to_hash arg
+          end
+
+          @settings = inherited_settings.merge @settings
+        end
+
+        # Convert a single constructor argument into a hash of settings
+        # that may be merged into this object's settings hash.
+        #
+        # @param arg [Object] see {#merge_settings}
+        def arg_to_hash(arg)
+          return arg if arg.is_a? Hash
+          return arg.to_hash if arg.is_a? MethodConfiguration
+          return MethodConfiguration.new(&arg).to_hash if arg.is_a? Proc
+
+          fail ArgumentError, "unknown method setting #{arg.inspect}"
+        end
 
         # Guard method which asserts that a configuration method
         # may not be called more than once, or else raises

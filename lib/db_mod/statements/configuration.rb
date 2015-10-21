@@ -21,7 +21,14 @@ module DbMod
       # @yield dsl block may be passed, which will be evaluated using a
       #   {MethodConfiguration} object as scope
       def self.def_configurable(mod, name, definition, params = 0, &block)
-        config = MethodConfiguration.new(&block).to_hash if block_given?
+        config =
+          if block_given?
+            MethodConfiguration.new(mod.default_method_settings, &block)
+          else
+            mod.default_method_settings
+          end
+
+        config &&= config.to_hash
 
         definition = attach_result_processors(definition, config) if config
         definition = attach_param_processor(definition, params, config)
@@ -45,6 +52,7 @@ module DbMod
 
           elsif params.is_a?(Fixnum) && params > 0
             define_fixed_args_method(definition, params)
+
           else
             ->() { instance_exec(&definition) }
           end

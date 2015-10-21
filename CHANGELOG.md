@@ -1,8 +1,11 @@
-0.0.6
-=====
+0.0.6 (2015-10-21)
+==================
 
 * Procs now allowed for default parameter values - [@dslh](https://github.com/dslh).
 * Adds `returning` block to method configuration options - [@dslh](https://github.com/dslh).
+* Adds module-level `default_method_settings` for default prepared and statement method
+  configuration - [@dslh](https://github.com/dslh).
+* Fixes a bug with dynamic module method declarations - [@dslh](https://github.com/dslh).
 
 0.0.5 (2015-10-19)
 ==================

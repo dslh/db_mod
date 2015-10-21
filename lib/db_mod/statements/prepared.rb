@@ -65,14 +65,14 @@ module DbMod
       #
       # @param mod [Module] a module with {DbMod} included
       def self.define_def_prepared(mod)
-        mod.class.instance_eval do
+        class << mod
           define_method(:def_prepared) do |name, sql, &block|
             sql = sql.dup
             name = name.to_sym
 
             params = Parameters.parse_params! sql
             prepared_statements[name] = sql
-            Prepared.define_prepared_method(mod, name, params, &block)
+            Prepared.define_prepared_method(self, name, params, &block)
           end
         end
       end
@@ -84,7 +84,7 @@ module DbMod
       #
       # @param mod [Module] module that has {DbMod} included
       def self.define_prepare_all_statements(mod)
-        mod.class.instance_eval do
+        class << mod
           define_method(:prepare_all_statements) do |conn|
             inherited_prepared_statements.each do |name, sql|
               conn.prepare(name.to_s, sql)
@@ -170,7 +170,7 @@ module DbMod
       #
       # @param mod [Module]
       def self.define_prepared_statements(mod)
-        mod.class.instance_eval do
+        class << mod
           define_method(:prepared_statements) do
             @prepared_statements ||= {}
           end
@@ -181,8 +181,11 @@ module DbMod
       # of named prepared statements declared on this module and all
       # included modules will be added to the connection when
       # {DbMod#db_connect} is called.
+      #
+      # @param mod [Module] where +inherited_prepared_statements+
+      #   should be defined
       def self.define_inherited_prepared_statements(mod)
-        mod.class.instance_eval do
+        class << mod
           define_method(:inherited_prepared_statements) do
             inherited = {}
             ancestors.each do |klass|

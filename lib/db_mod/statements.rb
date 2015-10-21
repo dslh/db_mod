@@ -1,4 +1,5 @@
 require_relative 'statements/configuration'
+require_relative 'statements/default_method_settings'
 require_relative 'statements/statement'
 require_relative 'statements/prepared'
 
@@ -15,7 +16,11 @@ module DbMod
     #
     # @param mod [Module] module that has had {DbMod} included
     # @see DbMod.included
+    # @see DefaultMethodSettings
+    # @see Prepared
+    # @see Statement
     def self.setup(mod)
+      DbMod::Statements::DefaultMethodSettings.setup(mod)
       DbMod::Statements::Prepared.setup(mod)
       DbMod::Statements::Statement.setup(mod)
     end

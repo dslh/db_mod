@@ -31,6 +31,12 @@ module DbMod
   def self.included(mod)
     DbMod::Create.setup(mod)
     DbMod::Statements.setup(mod)
+
+    # Ensure that these definitions cascade when
+    # submodules are included in subsequent submodules.
+    class << mod
+      define_method(:included) { |sub_mod| DbMod.included(sub_mod) }
+    end
   end
 
   protected
@@ -48,7 +54,7 @@ module DbMod
   # of {#db_connect} may need to be taken care of manually,
   # in particular preparing SQL statements.
   #
-  # @param [PGconn]
+  # @param value [PGconn] for now, only PostgreSQL is supported.
   attr_writer :conn
 
   # Shorthand for +conn.query+

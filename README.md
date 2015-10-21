@@ -1,4 +1,4 @@
-## `db_mod`
+## DbMod
 
 Database enabled modules for ruby.
 
@@ -22,6 +22,26 @@ For the moment `db_mod` only supports PostgreSQL databases via the
 guarantees will be made about backwards compatibility until v0.1.0.
 
 Issues, feature or pull requests, comments and feedback all welcomed.
+
+## Installation
+
+From the command line:
+
+```
+gem install db_mod
+```
+
+Or in your `Gemfile`:
+
+```ruby
+gem 'db_mod'
+```
+
+And then in your script:
+
+```ruby
+require 'db_mod'
+```
 
 ## Usage
 
@@ -207,6 +227,10 @@ Statement and prepared methods can be configured on declaration by using
 formatted as either a CSV document or an array of JSON objects, respectively.
 
 ```ruby
+# db_mod makes no attempt to load these
+require 'csv'
+require 'json'
+
 module Reports
   include DbMod
 
@@ -351,4 +375,82 @@ end
 
 important_report!(123)
   # === send_email('ex@mp.le', 'the sheep goes baa and the cow goes moo')
+```
+
+##### Default configuration settings
+
+To save typing, modules may declare a `default_method_settings` block that will
+be applied to all following `def_statement` and `def_prepared` definitions. The
+dsl used is the same as for individual method configuration blocks.
+
+```ruby
+require 'csv'
+
+module CsvReports
+  include DbMod
+
+  default_method_settings do
+    as(:csv).returning { |csv| send_report(csv) }
+  end
+
+  def send_report(csv)
+    # ...
+  end
+
+  def_prepared(:report_a, 'SELECT * FROM report_a WHERE user_id = $1')
+  def_prepared(:report_b, 'SELECT * FROM report_b WHERE user_id = $1')
+  def_prepared(:report_c, 'SELECT * FROM report_c WHERE user_id = $1')
+end
+
+module ReportEmailer
+  include CsvReports
+
+  default_method_settings do
+    single(:column)
+    returning do |ids|
+      ids.each { |id| send_all_reports_for(id) }
+    end
+  end
+
+  def send_all_reports_for(user)
+    report_a(user)
+    report_b(user)
+    report_c(user)
+  end
+
+  def_statement(:send_all_reports, 'SELECT id FROM user')
+  def_statement(:send_priority_reports, 'SELECT id FROM user WHERE priority')
+
+  # individual settings may be overridden
+  def_statement(:send_all_a_reports, 'SELECT id FROM user') do
+    returning { |ids| ids.each { |id| report_a(id) } }
+  end
+  def_statement(:send_reports, 'SELECT id FROM user WHERE name = $name') do
+    single(:value).returning { |id| send_all_reports_for(id) }
+  end
+end
+```
+
+Defaults don't cascade automatically from one module to another module that
+has included it. However the following sorts of things work if you need more
+flexibility in reusing default settings:
+
+```ruby
+
+BASE_SETTINGS = ->() { single(:row).as(:json) }
+module A
+  include DbMod
+
+  # Use base settings with overrides in block
+  default_method_settings(BASE_SETTINGS) { as(:csv) }
+end
+
+A.default_method_settings # => { as: :csv, single: :row }
+
+module B
+  include A
+
+  # Inherit settings from A, overrides as named args
+  default_method_settings(A.default_method_settings, as: :csv)
+end
 ```

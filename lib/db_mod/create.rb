@@ -20,7 +20,7 @@ module DbMod
     #   has been included
     # @see DbMod.included
     def self.setup(mod)
-      mod.class.instance_eval do
+      class << mod
         define_method(:create) do |options = {}|
           @instantiable_class ||= Create.instantiable_class(self)
 
