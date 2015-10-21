@@ -123,6 +123,8 @@ module DbMod
         #
         # @param args [Array] array of objects containing method
         #   configuration settings
+        # @return [Hash] == `@settings`
+        # @raise [ArgumentError] if any args are invalid (see {#arg_to_hash})
         def merge_settings(args)
           inherited_settings = {}
           args.each do |arg|
@@ -136,6 +138,9 @@ module DbMod
         # that may be merged into this object's settings hash.
         #
         # @param arg [Object] see {#merge_settings}
+        # @return [Hash] a hash of settings derived from the object
+        # @raise [ArgumentError] if an unexpected argement is encountered
+        # @see #merge_settings
         def arg_to_hash(arg)
           return arg if arg.is_a? Hash
           return arg.to_hash if arg.is_a? MethodConfiguration
@@ -150,6 +155,8 @@ module DbMod
         #
         # @param setting [Symbol] setting name
         # @param value [Object] setting value
+        # @raise [Exceptions::BadMethodConfiguration] if the settings has
+        #   already been set
         def set_once!(setting, value)
           if @settings.key? setting
             fail Exceptions::BadMethodConfiguration, "#{setting} already called"
@@ -163,6 +170,7 @@ module DbMod
         #
         # @param value [key] configuration setting
         # @param allowed [Hash] set of allowed configuration settings
+        # @raise [ArgumentError] if the value is not allowed
         def one_of!(value, allowed)
           return if allowed.key? value
 

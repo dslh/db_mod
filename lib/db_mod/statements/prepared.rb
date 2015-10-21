@@ -64,6 +64,8 @@ module DbMod
       # method with the same name.
       #
       # @param mod [Module] a module with {DbMod} included
+      # @raise ArgumentError if there is a problem parsing
+      #   method parameters from the SQL statement
       def self.define_def_prepared(mod)
         class << mod
           define_method(:def_prepared) do |name, sql, &block|
@@ -83,6 +85,7 @@ module DbMod
       # module or any of its included modules.
       #
       # @param mod [Module] module that has {DbMod} included
+      # @see DbMod#db_connect
       def self.define_prepare_all_statements(mod)
         class << mod
           define_method(:prepare_all_statements) do |conn|
@@ -100,6 +103,7 @@ module DbMod
       # @param statements [Hash] named list of prepared statements
       # @param klass [Class,Module] ancestor (hopefully a DbMod module)
       #   to collect prepared statements from
+      # @see Prepared.define_inherited_prepared_statements
       def self.merge_statements(statements, klass)
         return unless klass.respond_to? :prepared_statements
         return if klass.prepared_statements.nil?
@@ -120,8 +124,9 @@ module DbMod
       # @param params [Fixnum,Array<Symbol>]
       #   expected parameter count, or a list of argument names.
       #   An empty array produces a no-argument method.
-      # @yield dsl block may be passed, which will be evaluated using a
-      #   {Configuration::MethodConfiguration} object as scope
+      # @param block [Proc] A dsl block may be passed, which will be evaluated
+      #   using a {Configuration::MethodConfiguration} object as scope
+      # @see Configurable.def_configurable
       def self.define_prepared_method(mod, name, params, &block)
         if params == []
           define_no_args_prepared_method(mod, name, &block)
@@ -169,6 +174,7 @@ module DbMod
       # {DbMod#db_connect} is called.
       #
       # @param mod [Module]
+      # @see Prepared.define_inherited_prepared_statements
       def self.define_prepared_statements(mod)
         class << mod
           define_method(:prepared_statements) do
@@ -184,6 +190,7 @@ module DbMod
       #
       # @param mod [Module] where +inherited_prepared_statements+
       #   should be defined
+      # @see Prepared.define_prepare_all_statements
       def self.define_inherited_prepared_statements(mod)
         class << mod
           define_method(:inherited_prepared_statements) do

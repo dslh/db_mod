@@ -96,6 +96,7 @@ module DbMod
   # Load any missing options from defaults
   #
   # @param options [Hash] see {#db_connect}
+  # @see #db_connect
   def db_defaults!(options)
     fail ArgumentError, 'database name :db not supplied' unless options[:db]
     options[:port] ||= 5432
@@ -106,6 +107,7 @@ module DbMod
   # Create the database object itself.
   #
   # @param options [Hash] see {#db_connect}
+  # @return [PGconn] a new database connection
   def db_connect!(options)
     PGconn.connect(
       options[:host],

@@ -35,7 +35,8 @@ module DbMod
     # and can be instantiated with either a connection object
     # or some connection options.
     #
-    # @param mod [Module]
+    # @param mod [Module] the module to build a class for
+    # @return [Class] a singleton instantiable class that includes +mod+
     def self.instantiable_class(mod)
       Class.new do
         include mod

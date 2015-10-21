@@ -60,6 +60,8 @@ module DbMod
       # arbitrary name.
       #
       # @param mod [Module] a module with {DbMod} included
+      # @raise ArgumentError if there is a problem parsing
+      #   method parameters from the SQL statement
       def self.define_def_statement(mod)
         class << mod
           define_method(:def_statement) do |name, sql, &block|
@@ -81,8 +83,10 @@ module DbMod
       # @param params [Fixnum,Array<Symbol>]
       #   expected parameter count, or a list of argument names.
       #   An empty array produces a no-argument method.
-      # @yield dsl block may be passed, which will be evaluated using a
-      #   {Configuration::MethodConfiguration} object as scope
+      # @param sql [String] sql statement to execute
+      # @param block [Proc] A dsl block may be passed, which will be evaluated
+      #   using a {Configuration::MethodConfiguration} object as scope
+      # @see Configuration.def_configurable
       def self.define_statement_method(mod, name, params, sql, &block)
         if params == []
           Configuration.def_configurable(mod, name, ->(*) { query sql }, &block)

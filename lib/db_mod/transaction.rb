@@ -32,6 +32,9 @@ module DbMod
 
     # Start the database transaction, or fail if
     # one is already open.
+    #
+    # @raise [Exceptions::AlreadyInTransaction]
+    # @see #transaction
     def start_transaction!
       fail DbMod::Exceptions::AlreadyInTransaction if @in_transaction
       @in_transaction = true
@@ -40,6 +43,8 @@ module DbMod
     end
 
     # End the database transaction
+    #
+    # @see #transaction
     def end_transaction!
       @in_transaction = false
     end

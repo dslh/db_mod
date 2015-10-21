@@ -25,4 +25,7 @@ YARD::Rake::YardocTask.new(:doc) do |t|
 end
 
 require 'inch/rake'
-Inch::Rake::Suggest.new
+Inch::Rake::Suggest.new do |inch|
+  inch.args << '--private'
+  inch.args << '--pedantic'
+end

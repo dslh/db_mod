@@ -69,6 +69,7 @@ module DbMod
         #   with parameter validation already attached
         # @param defaults [Hash<Symbol,value>]
         #   see {Defaults.extend}
+        # @return [Proc] wrapped method definition
         def self.extend_named_args_method(definition, defaults)
           unless defaults.is_a? Hash
             fail ArgumentError, 'hash expected for defaults'
@@ -91,6 +92,7 @@ module DbMod
         #   before processing and validation
         # @param defaults [Hash<Symbol,value>]
         #   default parameter values
+        # @see Defaults.extend_named_args_method
         def self.use_named_defaults(scope, args, defaults)
           # Special case when no args given.
           args << {} if args.empty?
@@ -139,6 +141,7 @@ module DbMod
         #   by the base method definition
         # @param defaults [Array]
         #   default parameter values
+        # @return [Proc] wrapped method definition
         def self.extend_fixed_args_method(definition, arity, defaults)
           fail ArgumentError, 'too many defaults' if defaults.size > arity
 
@@ -167,6 +170,8 @@ module DbMod
         # @param defaults [Array] default parameter values
         # @param arity [Range<Fixnum>] number of arguments
         #   expected by the base method definition
+        # @raise [ArgumentError] if there are not enough or too many args
+        # @see Defaults.extend_fixed_args_method
         def self.use_fixed_defaults(scope, args, defaults, arity)
           unless arity.include? args.count
             fail ArgumentError, "#{args.count} given, (#{arity}) expected"

@@ -100,6 +100,7 @@ module DbMod
       # @param definition [Proc] base method definition
       # @param config [MethodConfiguration] configuration declared at
       #   method definition time
+      # @return [Proc] extended method definition
       def self.attach_result_processors(definition, config)
         definition = Single.extend(definition, config)
         definition = As.extend(definition, config)
@@ -117,7 +118,8 @@ module DbMod
       # processing), perform some transform on it and return the result.
       #
       # @param definition [Proc] base method definition
-      # @param processor [#call] result processor
+      # @param processor [Proc,#call] result processor
+      # @return [Proc] wrapped method definition
       def self.attach_result_processor(definition, processor)
         if processor.is_a? Proc
           lambda do |*args|

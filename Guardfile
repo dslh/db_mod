@@ -93,6 +93,6 @@ guard :bundler do
   files.each { |file| watch(helper.real_path(file)) }
 end
 
-guard :inch, pedantic: true do
+guard :inch, pedantic: true, private: true do
   watch(/.+\.rb/)
 end
